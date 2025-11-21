@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     // Light grey base for the home page background
-    backgroundColor: '#F2F4F7',
+    backgroundColor: theme.colors.background,
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,

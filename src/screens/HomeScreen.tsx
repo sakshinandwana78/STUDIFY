@@ -1,15 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Image, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Dimensions, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import FeatureCard from '../components/FeatureCard';
 import BottomNavBar from '../components/BottomNavBar';
+import FeatureCard from '../components/FeatureCard';
+import { StartLessonIcon, TakeQuizIcon, DownloadOfflineIcon, ARPlayerIcon, TeacherReportsIcon, AdminFlagsIcon } from '../ui/atoms/BrandIcons';
 import { theme } from '../ui/tokens/theme';
-import { ThemeProvider } from '../ui/tokens/theme.tsx';
+import { ThemeProvider, useTheme } from '../ui/tokens/theme.tsx';
 import GradientBackground from '../ui/molecules/GradientBackground';
-import FeatureSection from '../ui/molecules/FeatureSection';
 import TopHeaderBar from '../ui/molecules/TopHeaderBar';
 import SideDrawer from '../ui/molecules/SideDrawer';
+import { Chewy_400Regular } from '@expo-google-fonts/chewy';
+import { useFonts } from 'expo-font';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -26,33 +28,39 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const logoSource = useMemo(() => require('../../assets/STUDIFY (1).png'), []);
   const insets = useSafeAreaInsets();
+  const { theme: t } = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [fontsLoaded] = useFonts({ Chewy_400Regular });
 
   const learning = useMemo(
     () => [
-      { key: 'StudentLessons', title: 'Start Lesson', icon: 'book-outline' as const, accent: theme.colors.accentBlue },
-      { key: 'Quiz', title: 'Take Quiz', icon: 'clipboard-outline' as const, accent: theme.colors.accentTeal },
+      { key: 'StudentLessons', title: 'Start Lesson', icon: 'book-outline' as const, accent: theme.colors.accentBlue, brandIcon: <StartLessonIcon size={28} /> },
+      { key: 'Quiz', title: 'Take Quiz', icon: 'clipboard-outline' as const, accent: theme.colors.accentGreen, brandIcon: <TakeQuizIcon size={28} /> },
     ],
     []
   );
 
   const resources = useMemo(
     () => [
-      { key: 'OfflineDownloads', title: 'Download Offline', icon: 'cloud-download-outline' as const, accent: theme.colors.accentOrange },
-      { key: 'ARCamera', title: 'AR Player', icon: 'camera-outline' as const, accent: theme.colors.accentPink },
+      { key: 'OfflineDownloads', title: 'Download Offline', icon: 'cloud-download-outline' as const, accent: theme.colors.accentCoral, brandIcon: <DownloadOfflineIcon size={28} /> },
+      { key: 'ARCamera', title: 'AR Player', icon: 'camera-outline' as const, accent: theme.colors.accentTeal, brandIcon: <ARPlayerIcon size={28} /> },
     ],
     []
   );
 
   const teacherPanel = useMemo(
     () => [
-      { key: 'TeacherReports', title: 'Teacher Reports', icon: 'stats-chart-outline' as const, accent: theme.colors.accentPurple },
-      { key: 'AdminLiteFlags', title: 'Admin Flags', icon: 'flag-outline' as const, accent: theme.colors.accentGray },
+      { key: 'TeacherReports', title: 'Teacher Reports', icon: 'stats-chart-outline' as const, accent: theme.colors.accentPurple, brandIcon: <TeacherReportsIcon size={28} /> },
+      { key: 'AdminLiteFlags', title: 'Admin Flags', icon: 'flag-outline' as const, accent: theme.colors.accentGray, brandIcon: <AdminFlagsIcon size={28} /> },
     ],
     []
   );
+
+  // After all hooks are declared, it's safe to short-circuit render
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <GradientBackground>
@@ -60,43 +68,67 @@ export default function HomeScreen({ navigation }: Props) {
         <ThemeProvider initialMode={'light'}>
           <View style={styles.container}>
             <TopHeaderBar onMenuPress={() => setDrawerOpen(true)} />
-            <View style={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
-              <View style={styles.header}>
-                <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-                <Text style={styles.welcomeTitle}>Welcome to STUDIFY</Text>
-                <Text style={styles.welcomeSubtitle}>Empowering Learning Through AR</Text>
+
+            {/* Hero section (centered) */}
+            <View style={[styles.heroCentered, { paddingTop: insets.top + 6 }]}> 
+              {/* Illustration: centered below header, revert to impactful size */}
+              <View style={[styles.illustrationBox, { height: Dimensions.get('window').height * 0.25 }]}> 
+                <Image
+                  source={require('../../assets/ChatGPT Image Nov 20, 2025, 01_49_58 PM.png')}
+                  style={styles.illustration}
+                  resizeMode="cover"
+                />
               </View>
+              {/* Hero tagline removed per request */}
 
-              <View style={[styles.groupCard, { marginBottom: insets.bottom + 72 }]}>
-                <FeatureSection
-                  title="Learning"
-                  items={learning.map((item) => ({
-                    title: item.title,
-                    icon: item.icon,
-                    accentColor: item.accent,
-                    onPress: () => navigation.navigate(item.key as any),
-                  }))}
-                />
+              {/* Premium horizontal promo card (between illustration and grid) */}
+              <View style={styles.promoCard}>
+                <View style={styles.promoLeft}>
+                  <Text style={styles.promoText}>
+                    Master every concept with Studify, the AR solution designed to make learning clearer, faster, and more engaging.
+                  </Text>
+                </View>
+                <View style={styles.promoBadge}>
+                  {/* Logo: replace the require path below with your logo file.
+                      Example: require('../../assets/android-profile-icon-2.jpg') */}
+                  <Image
+                    source={require('../../assets/tudify (4).png')}
+                    style={styles.promoLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+              </View>
+            </View>
 
-                <FeatureSection
-                  title="Resources"
-                  items={resources.map((item) => ({
-                    title: item.title,
-                    icon: item.icon,
-                    accentColor: item.accent,
-                    onPress: () => navigation.navigate(item.key as any),
-                  }))}
-                />
-
-                <FeatureSection
-                  title="Teacher Panel"
-                  items={teacherPanel.map((item) => ({
-                    title: item.title,
-                    icon: item.icon,
-                    accentColor: item.accent,
-                    onPress: () => navigation.navigate(item.key as any),
-                  }))}
-                />
+            {/* Feature grid: 2 rows x 3 columns (responsive) */}
+            <View style={[styles.gridRows, { paddingBottom: insets.bottom + 112 }]}>              
+              {/* Row 1 */}
+              <View style={styles.row}> 
+                {[learning[0], resources[0], teacherPanel[0]].map((item) => (
+                  <View key={item.key} style={styles.cardCell}>
+                    <FeatureCard
+                      title={item.title}
+                      icon={item.icon}
+                      brandIcon={item.brandIcon}
+                      onPress={() => navigation.navigate(item.key as any)}
+                      accentColor={item.accent}
+                    />
+                  </View>
+                ))}
+              </View>
+              {/* Row 2 */}
+              <View style={styles.row}> 
+                {[learning[1], resources[1], teacherPanel[1]].map((item) => (
+                  <View key={item.key} style={styles.cardCell}>
+                    <FeatureCard
+                      title={item.title}
+                      icon={item.icon}
+                      brandIcon={item.brandIcon}
+                      onPress={() => navigation.navigate(item.key as any)}
+                      accentColor={item.accent}
+                    />
+                  </View>
+                ))}
               </View>
             </View>
 
@@ -112,47 +144,105 @@ export default function HomeScreen({ navigation }: Props) {
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent' },
+  safe: { flex: 1, backgroundColor: '#F2F2F2' },
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor:'#F2F2F2',
   },
   content: {
     paddingTop: 0,
   },
-  header: {
+  heroCentered: {
     alignItems: 'center',
-    paddingTop: 0,
-    paddingBottom: 0,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl, // sizeable gap above grid for future content
   },
-  logo: {
-    width: Math.min(180, width * 0.5),
-    height: Math.min(180, width * 0.5),
-    borderRadius: theme.radius.lg,
-    marginTop: -12,
-    marginBottom: -12,
+  illustrationBox: {
+    width: '100%',
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  welcomeTitle: {
-    marginTop: -12,
+  illustration: {
+    width: '100%',
+    height: '100%',
+  },
+  heroHeadline: {
+    marginTop: 10,
+    fontSize: 22,
+    letterSpacing: 0.4,
+    textAlign: 'center',
     color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '800',
-    lineHeight: 22,
-    paddingTop: 0,
-    paddingBottom: 0,
-    includeFontPadding: false,
+    fontFamily: 'Chewy_400Regular',
   },
-  welcomeSubtitle: {
-    marginTop: 4,
-    color: '#4B5563',
-    fontSize: 12,
-    fontWeight: '500',
-    lineHeight: 14,
+  titleCentered: {
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    includeFontPadding: false,
+    textAlign: 'center',
+  },
+  subtitleCentered: {
+    marginTop: 6,
+    fontSize: 14,
     fontStyle: 'italic',
-    paddingTop: 0,
-    paddingBottom: 0,
+    fontWeight: '500',
     includeFontPadding: false,
+    textAlign: 'center',
   },
+  // Promo card styles
+  promoCard: {
+    width: '100%',
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    // Slightly darker grey for premium contrast
+    backgroundColor: '#E6E6E6',
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.cardBorder,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: 8,
+    shadowColor: theme.colors.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  promoLeft: {
+    flex: 1,
+    paddingRight: theme.spacing.lg,
+    justifyContent: 'center',
+  },
+  promoText: {
+    color: '#444444',
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    flexShrink: 1,
+  },
+  promoBadge: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+    marginLeft: theme.spacing.lg,
+  },
+  promoLogo: {
+    width: 40,
+    height: 40,
+  },
+  // CTA removed per request
   groupCard: {
     marginTop: theme.spacing.lg,
     marginHorizontal: theme.spacing.sm,
@@ -167,5 +257,21 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     shadowOffset: { width: 0, height: 0 },
     elevation: 0,
+  },
+  gridRows: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: theme.spacing.lg,
+    marginHorizontal: theme.spacing.md,
+    marginTop: theme.spacing.xs,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    marginBottom: theme.spacing.lg,
+  },
+  cardCell: {
+    width: '31%',
   },
 });

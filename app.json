@@ -7,11 +7,10 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/STUDIFY (1080 x 1920 px) (1).png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "cover",
       "backgroundColor": "#000000"
     },
-    
     "androidStatusBar": {
       "backgroundColor": "#0B1229",
       "barStyle": "light-content",
@@ -30,7 +29,7 @@
         "backgroundColor": "#0B1229"
       },
       "splash": {
-        "image": "./assets/STUDIFY (1080 x 1920 px) (1).png",
+        "image": "./assets/splash-icon.png",
         "resizeMode": "cover",
         "backgroundColor": "#000000"
       },
@@ -48,10 +47,13 @@
         "@viro-community/react-viro",
         {
           "android": {
-            "xRMode": ["AR"]
+            "xRMode": [
+              "AR"
+            ]
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "developmentClient": {
       "silentLaunch": false

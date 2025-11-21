@@ -1,0 +1,47 @@
+name: EAS Android Preview (APK)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Install EAS CLI
+        run: |
+          npm install -g eas-cli
+
+      - name: Configure EAS credentials
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+        run: |
+          echo "Using EAS_TOKEN for authentication"
+
+      - name: Build Android APK (preview profile)
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+        run: |
+          eas build --platform android --profile preview --non-interactive --no-wait
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eas-build-logs
+          path: | 
+            ./eas-build

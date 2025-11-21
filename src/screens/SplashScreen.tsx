@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, ImageBackground } from 'react-native';
 // Use the new splash image; require() is most robust with Metro
-const heyImage = require('../../assets/STUDIFY (1080 x 1920 px) (1).png');
+const heyImage = require('../../assets/tudify (1080 x 1920 px).png');
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type RootStackParamList = {
   Splash: undefined;
+  Welcome: undefined;
   Home: undefined;
   ARCamera: undefined;
 };
@@ -23,14 +24,14 @@ export default function SplashScreen({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
 
-    // After ~3.2s, fade out and navigate to Home
+    // After ~3.2s, fade out and navigate to Welcome
     const timer = setTimeout(() => {
       Animated.timing(opacity, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
-        navigation.replace('Home');
+        navigation.replace('Welcome');
       });
     }, 3200);
 

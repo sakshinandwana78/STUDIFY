@@ -29,12 +29,12 @@ export default function BottomNavBar() {
     <View
       style={[
         styles.container,
-        { paddingBottom: Math.max(insets.bottom, theme.spacing.xs) },
+        { paddingBottom: Math.max(insets.bottom, theme.spacing.sm) },
       ]}
     >
       {items.map((item) => {
         const active = route.name === item.key;
-        const color = active ? theme.colors.primary : theme.colors.subtleText;
+        const color = active ? theme.colors.brandBlack : theme.colors.navInactiveGray;
 
         return (
           <TouchableOpacity
@@ -43,16 +43,18 @@ export default function BottomNavBar() {
             onPress={() => navigation.navigate(item.key as never)}
             activeOpacity={0.85}
           >
-            {item.useImage ? (
-              <Image
-                source={require('../../assets/android-profile-icon-2.jpg')}
-                style={[styles.profileIcon, active && styles.activeProfile]}
-                resizeMode="cover"
-              />
-            ) : (
-              <Ionicons name={item.icon!} size={22} color={color} />
-            )}
-            <Text style={[styles.label, { color }]}>{item.label}</Text>
+            <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
+              {item.useImage ? (
+                <Image
+                  source={require('../../assets/android-profile-icon-2.jpg')}
+                  style={[styles.profileIcon, active && styles.activeProfile]}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons name={item.icon!} size={26} color={color} />
+              )}
+            </View>
+            <Text style={[styles.label, active ? styles.labelActive : null, { color }]}>{item.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -68,36 +70,55 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderTopWidth: 1,
     borderTopColor: '#E9ECF2',
-    backgroundColor: theme.colors.card,
+    backgroundColor: '#FAFAFA',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingTop: theme.spacing.xs,
+    paddingTop: theme.spacing.md,
     // subtle shadow for elevation on Android
     shadowColor: theme.colors.shadow,
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: -2 },
-    elevation: 2,
+    elevation: 3,
   },
   item: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapActive: {
+    backgroundColor: theme.colors.brandYellow,
+    shadowColor: theme.colors.shadow,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
   label: {
     marginTop: 4,
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
+  labelActive: {
     fontWeight: '600',
   },
   profileIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 1,
     borderColor: theme.colors.cardBorder,
   },
   activeProfile: {
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.brandBlack,
   },
 });

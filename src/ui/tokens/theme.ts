@@ -1,18 +1,30 @@
 export const theme = {
   colors: {
-    background: '#FFFFFF',
+    // Structure
+    background: '#F2F2F2',
     card: '#FFFFFF',
-    primary: '#0B1229',
-    subtleText: '#606D8A',
-    softSurface: '#ECEFF3',
+    // Brand / text
+    primary: '#000000',
+    subtleText: '#6E6E6E',
+    softSurface: '#FAFAFA',
     shadow: '#000000',
-    cardBorder: '#DDE3EA',
-    accentBlue: '#4A9AF5',
-    accentTeal: '#3EC4AF',
-    accentPurple: '#8E56E6',
-    accentGray: '#7E8A97',
-    accentOrange: '#F5A623',
-    accentPink: '#EB5A8A',
+    cardBorder: '#E0E0E0',
+    brandYellow: '#FFCC00',
+    brandBlack: '#000000',
+    headerGray: '#6E6E6E',
+    // Muted premium accents (exact tones)
+    accentBlue: '#4A6FA5',
+    accentGreen: '#5C9370',
+    accentPurple: '#7A6FAF',
+    accentCoral: '#D28F7E',
+    accentTeal: '#5AA6A6',
+    // Legacy aliases used by screens/components
+    accentGray: '#7A7A7A',
+    accentOrange: '#D28F7E',
+    accentPink: '#D28F7E',
+    // Bottom nav tones
+    navActiveGray: '#4A4A4A',
+    navInactiveGray: '#8A8A8A',
   },
   spacing: {
     xs: 6,
@@ -22,7 +34,7 @@ export const theme = {
     xl: 24,
   },
   radius: {
-    sm: 12,
+    sm: 14,
     md: 16,
     lg: 28,
   },
