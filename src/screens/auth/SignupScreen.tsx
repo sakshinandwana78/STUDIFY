@@ -3,6 +3,8 @@ import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, Image } 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../../ui/tokens/theme';
 import AuthInput from './AuthInput';
+// NEW: Modular auth service (Firebase). Does not touch AR features.
+import { signUp } from '../../auth/AuthService';
 
 export type AuthStackParamList = {
   AuthWelcome: undefined;
@@ -20,12 +22,21 @@ export default function SignupScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing info', 'Please enter email and password.');
+      return;
+    }
     if (password !== confirm) {
       Alert.alert('Passwords do not match');
       return;
     }
-    Alert.alert('Sign Up', 'UI-only prototype.');
+    const { user, error } = await signUp(email, password, { firstName, lastName });
+    if (error) {
+      Alert.alert('Sign up failed', error.message || 'Please try again.');
+      return;
+    }
+    Alert.alert('Account created', `Welcome ${user?.displayName || user?.email || ''}`);
     navigation.replace('Login');
   };
 

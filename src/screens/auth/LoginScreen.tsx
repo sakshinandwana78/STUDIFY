@@ -3,6 +3,8 @@ import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, Image } 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../../ui/tokens/theme';
 import AuthInput from './AuthInput';
+// NEW: Modular auth service (Firebase). Does not touch AR features.
+import { signIn } from '../../auth/AuthService';
 
 export type AuthStackParamList = {
   AuthWelcome: undefined;
@@ -17,9 +19,17 @@ export default function LoginScreen({ navigation }: Props) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // UI-only stub: integrate with backend later.
-    Alert.alert('Login', 'This is a UI-only prototype.');
+  const handleLogin = async () => {
+    if (!identifier || !password) {
+      Alert.alert('Missing info', 'Please enter email and password.');
+      return;
+    }
+    const { user, error } = await signIn(identifier, password);
+    if (error) {
+      Alert.alert('Login failed', error.message || 'Please check your credentials.');
+      return;
+    }
+    Alert.alert('Welcome', `Signed in as ${user?.email ?? 'user'}`);
     navigation.getParent()?.navigate('Home' as never);
   };
 
@@ -67,10 +77,6 @@ export default function LoginScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Dev-only skip */}
-        <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.getParent()?.navigate('Home' as never)} style={styles.skipWrap}>
-          <Text style={styles.skipLabel}>Skip (dev)</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -112,6 +118,4 @@ const styles = StyleSheet.create({
   bottomRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 },
   bottomText: { color: '#6E6E6E', fontSize: 13, marginRight: 6 },
   bottomLink: { color: theme.colors.brandYellow, fontSize: 13, fontWeight: '600' },
-  skipWrap: { alignItems: 'center', marginTop: 10 },
-  skipLabel: { color: '#8FA0C2', fontSize: 12 },
 });

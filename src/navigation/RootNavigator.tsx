@@ -39,7 +39,7 @@ export default function RootNavigator() {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
-          initialRouteName="Welcome"
+          initialRouteName="Splash"
         >
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />

@@ -15,6 +15,7 @@ import { theme } from '../tokens/theme';
 type Props = {
   open: boolean;
   onClose: () => void;
+  onLogout?: () => void;
 };
 
 const { width, height } = Dimensions.get('window');
@@ -30,7 +31,7 @@ const menuItems = [
   { key: 'logout', label: 'Logout', icon: 'log-out-outline' as const },
 ];
 
-const SideDrawer: React.FC<Props> = ({ open, onClose }) => {
+const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout }) => {
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -82,7 +83,17 @@ const SideDrawer: React.FC<Props> = ({ open, onClose }) => {
         </View>
         <View style={styles.menuList}>
           {menuItems.map((item) => (
-            <TouchableOpacity key={item.key} style={styles.menuItem} activeOpacity={0.85} onPress={() => {}}>
+            <TouchableOpacity
+              key={item.key}
+              style={styles.menuItem}
+              activeOpacity={0.85}
+              onPress={() => {
+                if (item.key === 'logout') {
+                  // Delegate to parent to avoid coupling this UI to auth logic
+                  try { onLogout && onLogout(); } catch {}
+                }
+              }}
+            >
               <Ionicons name={item.icon} size={26} color={'#0F172A'} style={styles.menuIcon} />
               <Text variant="body" style={styles.menuLabel}>{item.label}</Text>
             </TouchableOpacity>

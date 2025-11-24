@@ -3,6 +3,8 @@ import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, Image } 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../../ui/tokens/theme';
 import AuthInput from './AuthInput';
+// NEW: Modular auth service (Firebase). Does not touch AR features.
+import { sendReset } from '../../auth/AuthService';
 
 export type AuthStackParamList = {
   AuthWelcome: undefined;
@@ -16,9 +18,18 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 export default function ForgotPasswordScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
 
-  const handleSend = () => {
-    Alert.alert('Reset password', 'If this were wired, a link would be sent.');
-    navigation.goBack();
+  const handleSend = async () => {
+    if (!email) {
+      Alert.alert('Missing email', 'Please enter your account email.');
+      return;
+    }
+    const { error } = await sendReset(email);
+    if (error) {
+      Alert.alert('Reset failed', error.message || 'Please try again.');
+      return;
+    }
+    Alert.alert('Email sent', 'Check your inbox for the reset link.');
+    navigation.replace('Login');
   };
 
   const illo = require('../../../assets/Reset password-rafiki.png');

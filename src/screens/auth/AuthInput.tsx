@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../ui/tokens/theme';
 
@@ -26,6 +26,7 @@ const AuthInput: React.FC<Props> = ({
   variant = 'dark',
 }) => {
   const [focused, setFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const isLight = variant === 'light';
 
   return (
@@ -42,11 +43,26 @@ const AuthInput: React.FC<Props> = ({
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
           placeholderTextColor={isLight ? '#9CA3AF' : '#B5BCD1'}
-          secureTextEntry={isPassword}
+          secureTextEntry={isPassword ? !showPassword : false}
           autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
           keyboardType={keyboardType}
           style={[styles.input, isLight && styles.inputLight]}
         />
+        {isPassword && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Toggle password visibility"
+            onPress={() => setShowPassword((s) => !s)}
+            style={styles.toggle}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={18}
+              color={isLight ? '#0F172A' : '#FFFFFF'}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -73,6 +89,7 @@ const styles = StyleSheet.create({
   fieldFocused: { borderColor: theme.colors.brandYellow, shadowColor: theme.colors.shadow, shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   input: { flex: 1, color: '#FFFFFF', fontSize: 14 },
   inputLight: { color: '#0F172A' },
+  toggle: { marginLeft: 8, padding: 4 },
 });
 
 export default AuthInput;

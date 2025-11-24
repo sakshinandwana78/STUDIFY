@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme } from '../ui/tokens/theme.tsx';
 import GradientBackground from '../ui/molecules/GradientBackground';
 import TopHeaderBar from '../ui/molecules/TopHeaderBar';
 import SideDrawer from '../ui/molecules/SideDrawer';
+import { signOut } from '../auth/AuthService';
 import { Chewy_400Regular } from '@expo-google-fonts/chewy';
 import { useFonts } from 'expo-font';
 
@@ -32,6 +33,21 @@ export default function HomeScreen({ navigation }: Props) {
   const { theme: t } = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fontsLoaded] = useFonts({ Chewy_400Regular });
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await signOut();
+      // Proceed to Welcome regardless; persisted session is cleared
+      if (error) {
+        console.warn('[Auth] Sign out error:', error.message || error.code);
+      }
+    } catch (e: any) {
+      console.warn('[Auth] Sign out threw:', e?.message || String(e));
+    } finally {
+      setDrawerOpen(false);
+      navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+    }
+  };
 
   const learning = useMemo(
     () => [
@@ -133,7 +149,7 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
 
             <BottomNavBar />
-            <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+            <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={handleLogout} />
           </View>
         </ThemeProvider>
       </SafeAreaView>

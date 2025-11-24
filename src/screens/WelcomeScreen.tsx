@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, StyleSheet, Image, TouchableOpacity } from 'r
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../ui/tokens/theme';
 import GradientBackground from '../ui/molecules/GradientBackground';
+import { auth } from '../auth/firebaseClient';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -33,7 +34,10 @@ export default function WelcomeScreen({ navigation }: Props) {
           <TouchableOpacity
             activeOpacity={0.9}
             style={styles.cta}
-            onPress={() => navigation.replace('Auth')}
+            onPress={() => {
+              const isLoggedIn = !!auth && !!auth.currentUser;
+              navigation.replace(isLoggedIn ? 'Home' : 'Auth');
+            }}
           >
             <Text style={styles.ctaLabel}>Get Started</Text>
           </TouchableOpacity>
