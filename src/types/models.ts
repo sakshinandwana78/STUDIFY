@@ -19,6 +19,8 @@ export interface Model3D {
   defaultRotation: [number, number, number];
   /** Desired initial placement distance from camera in meters */
   defaultPlacementMeters?: number;
+  /** Optional: adjust vertical origin so base sits flush on horizontal planes */
+  baseYOffsetMeters?: number;
 }
 
 /**

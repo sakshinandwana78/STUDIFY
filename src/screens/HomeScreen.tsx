@@ -10,6 +10,8 @@ import { ThemeProvider, useTheme } from '../ui/tokens/theme.tsx';
 import GradientBackground from '../ui/molecules/GradientBackground';
 import TopHeaderBar from '../ui/molecules/TopHeaderBar';
 import SideDrawer from '../ui/molecules/SideDrawer';
+import ConfirmModal from '../ui/molecules/ConfirmModal';
+import Snackbar from '../ui/atoms/Snackbar';
 import { signOut } from '../auth/AuthService';
 import { Chewy_400Regular } from '@expo-google-fonts/chewy';
 import { useFonts } from 'expo-font';
@@ -33,6 +35,15 @@ export default function HomeScreen({ navigation }: Props) {
   const { theme: t } = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fontsLoaded] = useFonts({ Chewy_400Regular });
+  const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
+  const [snackVisible, setSnackVisible] = useState(false);
+  const [snackMessage, setSnackMessage] = useState('');
+  const [snackType, setSnackType] = useState<'success' | 'error' | 'info'>('info');
+
+  const requestLogout = () => {
+    setDrawerOpen(false);
+    setLogoutConfirmVisible(true);
+  };
 
   const handleLogout = async () => {
     try {
@@ -40,12 +51,29 @@ export default function HomeScreen({ navigation }: Props) {
       // Proceed to Welcome regardless; persisted session is cleared
       if (error) {
         console.warn('[Auth] Sign out error:', error.message || error.code);
+        setSnackMessage('Logout failed. Please try again.');
+        setSnackType('error');
+        setSnackVisible(true);
+        setLogoutConfirmVisible(false);
+        return;
       }
+      // Success toast that matches app aesthetic
+      setSnackMessage('Logged out successfully');
+      setSnackType('success');
+      setSnackVisible(true);
     } catch (e: any) {
       console.warn('[Auth] Sign out threw:', e?.message || String(e));
+      setSnackMessage('Logout failed. Please try again.');
+      setSnackType('error');
+      setSnackVisible(true);
+      setLogoutConfirmVisible(false);
+      return;
     } finally {
-      setDrawerOpen(false);
-      navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+      setLogoutConfirmVisible(false);
+      // Small delay so the snackbar is visible before navigation reset
+      setTimeout(() => {
+        navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+      }, 900);
     }
   };
 
@@ -149,7 +177,26 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
 
             <BottomNavBar />
-            <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={handleLogout} />
+            <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={requestLogout} />
+
+            {/* Confirm logout modal */}
+            <ConfirmModal
+              visible={logoutConfirmVisible}
+              title="Confirm Logout"
+              message="Are you sure you want to logout?"
+              confirmLabel="Logout"
+              cancelLabel="Cancel"
+              onConfirm={handleLogout}
+              onCancel={() => setLogoutConfirmVisible(false)}
+            />
+
+            {/* Success/error snackbar */}
+            <Snackbar
+              visible={snackVisible}
+              message={snackMessage}
+              type={snackType}
+              onHide={() => setSnackVisible(false)}
+            />
           </View>
         </ThemeProvider>
       </SafeAreaView>

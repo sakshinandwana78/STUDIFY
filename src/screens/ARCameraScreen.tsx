@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ViroARSceneNavigator } from '@viro-community/react-viro';
 import ARScene from '../scenes/ARScene';
@@ -17,6 +17,7 @@ export default function ARCameraScreen() {
     planeDetected: false,
     anchorFound: false,
   });
+  const [overlayOpacity] = useState(new Animated.Value(1));
 
   const handleAnchorFound = () => {
     setArState((prev) => ({ ...prev, anchorFound: true }));
@@ -45,6 +46,24 @@ export default function ARCameraScreen() {
     }
     console.error('AR Error:', err);
   };
+
+  // Fade overlay out smoothly when model is placed
+  useEffect(() => {
+    if (arState.anchorFound) {
+      Animated.timing(overlayOpacity, { toValue: 0, duration: 350, useNativeDriver: true }).start();
+    } else {
+      overlayOpacity.setValue(1);
+    }
+  }, [arState.anchorFound]);
+
+  const statusText = (() => {
+    if (!arState.anchorFound) {
+      if (!arState.isTracking) return 'Wait, detecting the surface…';
+      if (arState.isTracking && !arState.planeDetected) return 'AR Ready';
+      if (arState.isTracking && arState.planeDetected) return 'Great! Surface detected, tap to place the model';
+    }
+    return '';
+  })();
 
   if (loading) {
     return (
@@ -75,11 +94,11 @@ export default function ARCameraScreen() {
             onTrackingUpdated: handleTrackingUpdated,
             onError: handleARError,
           }}
-          pointerEvents="none"
           style={[StyleSheet.absoluteFill, styles.arScene]}
         />
 
-        <View style={styles.overlay} pointerEvents="auto">
+        {/* Allow taps to pass through except on interactive children */}
+        <View style={styles.overlay} pointerEvents="box-none">
           {!isModelPickerVisible && (
             <TouchableOpacity
               style={styles.addButton}
@@ -109,11 +128,11 @@ export default function ARCameraScreen() {
             onClose={handleCloseModelPicker}
           />
 
-          <View style={styles.trackingIndicator} pointerEvents="none">
-            <Text style={styles.trackingText}>
-              {arState.isTracking ? 'AR Ready' : 'Initializing AR…'}
-            </Text>
-          </View>
+          {!arState.anchorFound && !!statusText && (
+            <Animated.View style={[styles.statusOverlay, { opacity: overlayOpacity }]} pointerEvents="none">
+              <Text style={styles.statusOverlayText}>{statusText}</Text>
+            </Animated.View>
+          )}
         </View>
       </View>
   );
@@ -160,15 +179,22 @@ const styles = StyleSheet.create({
     padding: 5,
     zIndex: 3,
   },
-  trackingIndicator: {
+  statusOverlay: {
     position: 'absolute',
     top: 16,
-    left: 16,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
     zIndex: 3,
   },
-  trackingText: { color: '#ffffff', fontSize: 12 },
+  statusOverlayText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
 });

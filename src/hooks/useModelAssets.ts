@@ -52,6 +52,8 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 1.2,
+            // Helps keep the base flush on horizontal planes if pivot is centered
+            baseYOffsetMeters: -0.03,
           },
           {
             id: 'heart',
@@ -62,6 +64,7 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 0.8,
+            baseYOffsetMeters: -0.02,
           },
           {
             id: 'orrery',

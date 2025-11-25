@@ -74,4 +74,4 @@ function ensureInitialized() {
 
 ensureInitialized();
 
-export { app, auth };
+export { app, auth }; 
