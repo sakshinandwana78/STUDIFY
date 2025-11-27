@@ -12,9 +12,9 @@ type IconProps = {
 
 const defaults = {
   size: 24,
-  strokeColor: theme.colors.subtleText, // #6E6E6E
-  fillColor: theme.colors.softSurface,  // #FAFAFA / light grey
-  accentColor: theme.colors.brandYellow, // #FFCC00
+  strokeColor: theme.colors.brandBlack, // crisper strokes to match banner/text
+  fillColor: theme.colors.softSurface,  // light neutral fill
+  accentColor: theme.colors.brandYellow, // brand accent
   strokeWidth: 2,
 };
 

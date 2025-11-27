@@ -36,7 +36,8 @@ export default function WelcomeScreen({ navigation }: Props) {
             style={styles.cta}
             onPress={() => {
               const isLoggedIn = !!auth && !!auth.currentUser;
-              navigation.replace(isLoggedIn ? 'Home' : 'Auth');
+              // Reset to target route to avoid any intermediate transitions or flashes
+              navigation.reset({ index: 0, routes: [{ name: isLoggedIn ? 'Home' : 'Auth' }] });
             }}
           >
             <Text style={styles.ctaLabel}>Get Started</Text>

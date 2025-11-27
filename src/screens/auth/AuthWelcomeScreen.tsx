@@ -1,8 +1,10 @@
 import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import { theme } from '../../ui/tokens/theme';
 import GradientBackground from '../../ui/molecules/GradientBackground';
+import { auth } from '../../auth/firebaseClient';
 
 export type AuthStackParamList = {
   AuthWelcome: undefined;
@@ -29,7 +31,17 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
           <TouchableOpacity
             activeOpacity={0.9}
             style={styles.primary}
-            onPress={() => navigation.replace('Login')}
+            onPress={() => {
+              const isLoggedIn = !!auth && !!auth.currentUser;
+              if (isLoggedIn) {
+                // Reset parent (root) navigator directly to Home for instant transition
+                navigation.getParent()?.dispatch(
+                  CommonActions.reset({ index: 0, routes: [{ name: 'Home' as never }] })
+                );
+              } else {
+                navigation.replace('Login');
+              }
+            }}
           >
             <Text style={styles.primaryLabel}>Get Started</Text>
           </TouchableOpacity>
@@ -38,7 +50,11 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.skip}
-            onPress={() => navigation.getParent()?.navigate('Home' as never)}
+            onPress={() =>
+              navigation.getParent()?.dispatch(
+                CommonActions.reset({ index: 0, routes: [{ name: 'Home' as never }] })
+              )
+            }
           >
             <Text style={styles.skipLabel}>Skip (dev)</Text>
           </TouchableOpacity>

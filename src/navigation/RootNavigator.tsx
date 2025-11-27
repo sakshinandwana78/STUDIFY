@@ -14,7 +14,9 @@ import TeacherReportsScreen from '../screens/TeacherReportsScreen';
 import AdminLiteFlagsScreen from '../screens/AdminLiteFlagsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import AuthNavigator from './AuthNavigator';
+import { AvatarProvider } from '../ui/providers/AvatarProvider';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -29,6 +31,7 @@ export type RootStackParamList = {
   AdminLiteFlags: undefined;
   Settings: undefined;
   Profile: undefined;
+  EditProfile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,26 +39,29 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function RootNavigator() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
-          initialRouteName="Splash"
-        >
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          {/* Nested Auth flow. Does not affect AR or other logic. */}
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="ARCamera" component={ARCameraScreen} />
-          <Stack.Screen name="StudentLessons" component={StudentLessonsScreen} />
-          <Stack.Screen name="Quiz" component={QuizScreen} />
-          <Stack.Screen name="OfflineDownloads" component={OfflineDownloadsScreen} />
-          <Stack.Screen name="TeacherReports" component={TeacherReportsScreen} />
-          <Stack.Screen name="AdminLiteFlags" component={AdminLiteFlagsScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AvatarProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
+            initialRouteName="Splash"
+          >
+            <Stack.Screen name="Splash" component={SplashScreen} />
+            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            {/* Nested Auth flow. Does not affect AR or other logic. */}
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="ARCamera" component={ARCameraScreen} />
+            <Stack.Screen name="StudentLessons" component={StudentLessonsScreen} />
+            <Stack.Screen name="Quiz" component={QuizScreen} />
+            <Stack.Screen name="OfflineDownloads" component={OfflineDownloadsScreen} />
+            <Stack.Screen name="TeacherReports" component={TeacherReportsScreen} />
+            <Stack.Screen name="AdminLiteFlags" component={AdminLiteFlagsScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AvatarProvider>
     </GestureHandlerRootView>
   );
 }

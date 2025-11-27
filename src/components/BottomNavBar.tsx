@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { theme } from '../ui/tokens/theme';
+import { useAvatar } from '../ui/providers/AvatarProvider';
 
 type TabItem = {
   key: 'Home' | 'StudentLessons' | 'ARCamera' | 'Profile' | 'Settings';
@@ -24,6 +25,7 @@ export default function BottomNavBar() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const { avatarUri } = useAvatar();
 
   return (
     <View
@@ -46,7 +48,7 @@ export default function BottomNavBar() {
             <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
               {item.useImage ? (
                 <Image
-                  source={require('../../assets/android-profile-icon-2.jpg')}
+                  source={avatarUri ? { uri: avatarUri } : require('../../assets/android-profile-icon-2.jpg')}
                   style={[styles.profileIcon, active && styles.activeProfile]}
                   resizeMode="cover"
                 />

@@ -22,7 +22,8 @@ import { ARSceneState } from '../types/models';
 try {
   ViroMaterials.createMaterials({
     planeIndicator: {
-      diffuseColor: '#FFFFFF',
+      // Softer tint that blends with real surfaces but remains visible
+      diffuseColor: '#D9E8FF',
       lightingModel: 'Lambert',
     },
   });
@@ -74,13 +75,17 @@ const ARScene = (props: any) => {
   const planeTapAllowed = trackingState === 'TRACKING_NORMAL' && (
     (extentKnown && extentMeetsThreshold) || stablePlane
   );
-  const gridOpacity = planeVisible
-    ? (extentKnown
-        ? (extentMeetsThreshold
-            ? (stablePlane ? 0.45 : 0.30)
-            : 0.12)
-        : (stablePlane ? 0.30 : 0.10))
-    : 0.0;
+  // Smooth, graded grid opacity based on confidence from stability and extent.
+  // Base visibility stays low but present; ramps up as confidence increases.
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+  const stablePct = clamp01(stablePlaneFrames / STABLE_FRAMES_THRESHOLD);
+  const extentPct = extentKnown
+    ? clamp01(Math.min(lastPlaneExtent[0], lastPlaneExtent[1]) / MIN_EXTENT_METERS)
+    : 0;
+  const confidence = Math.max(stablePct, extentPct);
+  const baseOpacity = 0.12;
+  const peakOpacity = 0.48;
+  const gridOpacity = planeVisible ? baseOpacity + (peakOpacity - baseOpacity) * confidence : 0.0;
 
   const prevCenterRef = useRef<[number, number, number] | null>(null);
 

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Dimensions, Image, Pressable } from 'react-native';
+import Svg, { Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import BottomNavBar from '../components/BottomNavBar';
@@ -26,6 +27,7 @@ type RootStackParamList = {
   TeacherReports: undefined;
   AdminLiteFlags: undefined;
   Settings: undefined;
+  EditProfile: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -39,6 +41,30 @@ export default function HomeScreen({ navigation }: Props) {
   const [snackVisible, setSnackVisible] = useState(false);
   const [snackMessage, setSnackMessage] = useState('');
   const [snackType, setSnackType] = useState<'success' | 'error' | 'info'>('info');
+
+  // Banner quotes and simple cycling handler
+  const quotes = useMemo(
+    () => [
+      'Step into a new dimension of learning. Understand faster and explore deeper with interactive augmented reality.',
+      'Learning that feels alive. Explore more, understand better, and stay curious every day.',
+      'Experience lessons the smart way—AR makes every concept interactive and engaging for all learners.',
+    ],
+    []
+  );
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const nextQuote = () => setQuoteIndex((i) => (i + 1) % quotes.length);
+
+  const currentQuote = quotes[quoteIndex];
+  const [headline, body] = useMemo(() => {
+    const parts = String(currentQuote).split('. ');
+    if (parts.length > 1) {
+      return [parts[0], parts.slice(1).join('. ')];
+    }
+    return [String(currentQuote), ''];
+  }, [currentQuote]);
+
+  // Apply slightly smaller headline for the long “Experience lessons…” quote
+  const isExperienceQuote = currentQuote.startsWith('Experience lessons the smart way—');
 
   const requestLogout = () => {
     setDrawerOpen(false);
@@ -123,29 +149,34 @@ export default function HomeScreen({ navigation }: Props) {
                   resizeMode="cover"
                 />
               </View>
-              {/* Hero tagline removed per request */}
-
-              {/* Premium horizontal promo card (between illustration and grid) */}
-              <View style={styles.promoCard}>
-                <View style={styles.promoLeft}>
-                  <Text style={styles.promoText}>
-                    Master every concept with Studify, the AR solution designed to make learning clearer, faster, and more engaging.
-                  </Text>
-                </View>
-                <View style={styles.promoBadge}>
-                  {/* Logo: replace the require path below with your logo file.
-                      Example: require('../../assets/android-profile-icon-2.jpg') */}
+              <Pressable style={styles.banner} onPress={nextQuote}>
+                <Svg style={styles.bannerGradientSvg} width="100%" height="100%">
+              <Defs>
+                <LinearGradient id="bannerGrad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#FFE36E" stopOpacity={0.6} />
+                  <Stop offset="100%" stopColor="#FFD64D" stopOpacity={0.9} />
+                </LinearGradient>
+              </Defs>
+              <Rect x={0} y={0} width="100%" height="100%" fill="url(#bannerGrad)" />
+            </Svg>
+                <View style={styles.bannerContent}>
+                  <View style={styles.bannerTextColumn}>
+                    <Text style={[styles.bannerHeadline, isExperienceQuote && styles.bannerHeadlineSmall]}>{headline}</Text>
+                    {body ? <Text style={styles.bannerBody}>{body}</Text> : null}
+                  </View>
                   <Image
-                    source={require('../../assets/tudify (4).png')}
-                    style={styles.promoLogo}
+                    source={require('../../assets/reading.png')}
+                    style={styles.bannerStickerRight}
                     resizeMode="contain"
                   />
                 </View>
-              </View>
+              </Pressable>
+            {/* Hero tagline removed per request */}
+
             </View>
 
             {/* Feature grid: 2 rows x 3 columns (responsive) */}
-            <View style={[styles.gridRows, { paddingBottom: insets.bottom + 112 }]}>              
+            <View style={[styles.gridRows, { paddingBottom: insets.bottom + 136 }]}>              
               {/* Row 1 */}
               <View style={styles.row}> 
                 {[learning[0], resources[0], teacherPanel[0]].map((item) => (
@@ -177,7 +208,15 @@ export default function HomeScreen({ navigation }: Props) {
             </View>
 
             <BottomNavBar />
-            <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={requestLogout} />
+            <SideDrawer
+              open={drawerOpen}
+              onClose={() => setDrawerOpen(false)}
+              onLogout={requestLogout}
+              onEditProfile={() => {
+                setDrawerOpen(false);
+                navigation.navigate('EditProfile');
+              }}
+            />
 
             {/* Confirm logout modal */}
             <ConfirmModal
@@ -219,7 +258,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl, // sizeable gap above grid for future content
+    paddingBottom: theme.spacing.md, // tighten gap above grid while keeping breathing room
   },
   illustrationBox: {
     width: '100%',
@@ -248,7 +287,7 @@ const styles = StyleSheet.create({
   },
   subtitleCentered: {
     marginTop: 6,
-    fontSize: 14,
+    fontSize: 13,
     fontStyle: 'italic',
     fontWeight: '500',
     includeFontPadding: false,
@@ -274,6 +313,122 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
+  },
+  // Replacement static illustration occupying the same slot and margins
+  promoImageBox: {
+    width: '100%',
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    borderRadius: theme.radius.md,
+    overflow: 'hidden',
+  },
+  promoImage: {
+    width: '100%',
+    // Maintain original asset aspect ratio: 1080x600 (width/height = 1.8)
+    aspectRatio: 1080 / 600,
+  },
+  // New yellow banner that nestles under the hero illustration
+  banner: {
+    width: '100%',
+    backgroundColor: '#FFD64D',
+    borderRadius: 16,
+    paddingHorizontal: theme.spacing.lg, // consistent 16dp padding on sides
+    paddingVertical: theme.spacing.md,   // tightened vertical padding to curb growth
+    position: 'relative',
+    // Sit just below the illustration without overlap
+    marginTop: 10,
+    // Space before the grid so nothing overlaps
+    marginBottom: theme.spacing.md,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+    zIndex: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E9F2',
+  },
+  bannerGradientSvg: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+  bannerGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 16,
+  },
+  bannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center', // align text and sticker as a unit
+    justifyContent: 'flex-start',
+    paddingHorizontal: 0, // rely on outer banner padding
+    paddingVertical: 0,
+  },
+  bannerTextColumn: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: theme.spacing.md,
+    paddingLeft: 2,
+  },
+  bannerHeadline: {
+    color: '#000000',
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+    textAlign: 'left',
+  },
+  bannerHeadlineSmall: {
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  bannerBody: {
+    color: theme.colors.subtleText,
+    fontSize: 11,
+    lineHeight: 13,
+    fontStyle: 'italic',
+    fontWeight: '400',
+    textAlign: 'left',
+    marginTop: 6,
+  },
+  bannerStickerRight: {
+    width: 44,
+    height: 44,
+    marginLeft: theme.spacing.sm,
+  },
+  bannerHeroArt: {
+    width: 96,
+    height: 96,
+    marginLeft: theme.spacing.md,
+    alignSelf: 'center',
+    flexShrink: 0,
+  },
+  bannerArrow: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginTop: theme.spacing.md,
+  },
+  bannerArrowText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    lineHeight: 20,
+  },
+  bannerSticker: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    left: 12,
+    top: 12,
   },
   promoLeft: {
     flex: 1,
@@ -326,7 +481,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingHorizontal: theme.spacing.lg,
     marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm, // slightly closer spacing under banner
   },
   row: {
     flexDirection: 'row',
@@ -335,6 +490,6 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   cardCell: {
-    width: '31%',
+    width: '32%',
   },
 });

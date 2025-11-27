@@ -50,9 +50,9 @@ export default function ARCameraScreen() {
   // Fade overlay out smoothly when model is placed
   useEffect(() => {
     if (arState.anchorFound) {
-      Animated.timing(overlayOpacity, { toValue: 0, duration: 350, useNativeDriver: true }).start();
+      Animated.timing(overlayOpacity, { toValue: 0, duration: 450, useNativeDriver: true }).start();
     } else {
-      overlayOpacity.setValue(1);
+      Animated.timing(overlayOpacity, { toValue: 1, duration: 220, useNativeDriver: true }).start();
     }
   }, [arState.anchorFound]);
 
@@ -189,12 +189,19 @@ const styles = StyleSheet.create({
   },
   statusOverlayText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    lineHeight: 22,
+    textAlign: 'center',
+    maxWidth: '88%',
     backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
     overflow: 'hidden',
   },
 });

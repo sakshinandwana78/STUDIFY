@@ -34,9 +34,9 @@ export default function FeatureCard({ title, icon, onPress, accentColor, disable
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    height: 112,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    height: 122,
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
     borderRadius: theme.radius.md, // moderate rounding for classic premium cards
     backgroundColor: theme.colors.card, // clean flat white
     borderWidth: StyleSheet.hairlineWidth,
@@ -45,30 +45,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // Subtle, clean elevation
     shadowColor: theme.colors.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    shadowOpacity: 0.10,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   cardDisabled: {
     opacity: 0.6,
   },
   iconWrap: {
-    width: 52,
-    height: 52,
+    width: 60,
+    height: 60,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4, // nudge icon lower within card
-    marginBottom: 6, // reduce gap to label for visual connection
+    backgroundColor: theme.colors.softSurface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.cardBorder,
+    marginTop: 6,
+    marginBottom: 8,
+    shadowColor: theme.colors.shadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   brandIconScale: {
-    transform: [{ scale: 1.4 }],
+    transform: [{ scale: 1.45 }],
   },
   title: {
     color: theme.colors.primary,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     includeFontPadding: false,
     fontWeight: '700',
     textAlign: 'center',

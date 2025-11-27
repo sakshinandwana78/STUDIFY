@@ -16,6 +16,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onLogout?: () => void;
+  onEditProfile?: () => void;
 };
 
 const { width, height } = Dimensions.get('window');
@@ -31,7 +32,7 @@ const menuItems = [
   { key: 'logout', label: 'Logout', icon: 'log-out-outline' as const },
 ];
 
-const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout }) => {
+const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout, onEditProfile }) => {
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -91,6 +92,12 @@ const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout }) => {
                 if (item.key === 'logout') {
                   // Delegate to parent to avoid coupling this UI to auth logic
                   try { onLogout && onLogout(); } catch {}
+                  return;
+                }
+                if (item.key === 'editProfile') {
+                  try { onEditProfile && onEditProfile(); } catch {}
+                  onClose();
+                  return;
                 }
               }}
             >

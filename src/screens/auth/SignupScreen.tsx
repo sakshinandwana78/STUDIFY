@@ -16,8 +16,7 @@ export type AuthStackParamList = {
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
 export default function SignupScreen({ navigation }: Props) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -31,6 +30,10 @@ export default function SignupScreen({ navigation }: Props) {
       Alert.alert('Passwords do not match');
       return;
     }
+    // Derive first/last from Full Name to preserve existing signUp shape
+    const parts = fullName.trim().split(/\s+/);
+    const firstName = parts[0] || '';
+    const lastName = parts.slice(1).join(' ') || '';
     const { user, error } = await signUp(email, password, { firstName, lastName });
     if (error) {
       Alert.alert('Sign up failed', error.message || 'Please try again.');
@@ -49,8 +52,7 @@ export default function SignupScreen({ navigation }: Props) {
         <Image source={illo} style={styles.illustration} resizeMode="contain" />
         <Text style={styles.heading}>Sign Up</Text>
 
-        <AuthInput label="First Name" placeholder="Jane" value={firstName} onChangeText={setFirstName} icon={'person-outline'} variant="light" />
-        <AuthInput label="Last Name" placeholder="Doe" value={lastName} onChangeText={setLastName} icon={'person-outline'} variant="light" />
+        <AuthInput label="Full Name" placeholder="Jane Doe" value={fullName} onChangeText={setFullName} icon={'person-outline'} variant="light" />
         <AuthInput label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" icon={'mail-outline'} variant="light" />
         <AuthInput label="Password" placeholder="••••••••" value={password} onChangeText={setPassword} isPassword icon={'lock-closed-outline'} variant="light" />
         <AuthInput label="Confirm Password" placeholder="••••••••" value={confirm} onChangeText={setConfirm} isPassword icon={'lock-closed-outline'} variant="light" />
@@ -78,14 +80,15 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     backgroundColor: '#FFFFFF',
     borderRadius: 28,
-    padding: 22,
+    paddingHorizontal: 22,
+    paddingVertical: 24,
     shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 12 },
     elevation: 8,
   },
-  illustration: { width: '100%', height: 140, marginBottom: 12 },
+  illustration: { width: '100%', height: 140, marginBottom: 8 },
   heading: { color: theme.colors.brandBlack, fontSize: 24, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
   primary: {
     marginTop: 6,
@@ -101,7 +104,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   primaryLabel: { color: theme.colors.brandBlack, fontSize: 16, fontWeight: '700' },
-  bottomRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 },
+  bottomRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 10 },
   bottomText: { color: '#6E6E6E', fontSize: 13, marginRight: 6 },
   bottomLink: { color: theme.colors.brandYellow, fontSize: 13, fontWeight: '600' },
 });

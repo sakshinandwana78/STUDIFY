@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   Alert,
   SafeAreaView,
   Platform,
+  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../ui/tokens/theme';
@@ -17,11 +17,20 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { useAvatar } from '../ui/providers/AvatarProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 
 type GenderOption = 'Male' | 'Female' | 'Other' | 'Prefer not to say' | '';
 
-export default function ProfileScreen() {
+const STORAGE_KEYS = {
+  fullName: 'profile_fullName',
+  email: 'profile_email',
+  dob: 'profile_dob',
+  gender: 'profile_gender',
+  phone: 'profile_phone',
+};
+
+export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const defaultAvatar = useMemo(() => require('../../assets/android-profile-icon-2.jpg'), []);
   const { avatarUri, setAvatarUri } = useAvatar();
@@ -36,10 +45,11 @@ export default function ProfileScreen() {
   const [phone, setPhone] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
 
-  // Success modal state
-  const [successVisible, setSuccessVisible] = useState(false);
-  const dismissTimer = useRef<NodeJS.Timeout | null>(null);
+  // Inline alert state (small popup)
   const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertVariant, setAlertVariant] = useState<'success' | 'error'>('error');
+  const dismissTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handleOpenPicker = () => setPickerVisible(true);
   const handleClosePicker = () => setPickerVisible(false);
@@ -138,22 +148,64 @@ export default function ProfileScreen() {
     setPickerVisible(false);
   };
 
-  const handleCreateAccount = () => {
+  const showAlert = (message: string, variant: 'success' | 'error', duration = 1200) => {
+    setAlertMessage(message);
+    setAlertVariant(variant);
+    setAlertVisible(true);
+    if (dismissTimer.current) clearTimeout(dismissTimer.current);
+    dismissTimer.current = setTimeout(() => {
+      setAlertVisible(false);
+      if (variant === 'success') {
+        navigation.goBack();
+      }
+    }, duration);
+  };
+
+  const handleSaveChanges = async () => {
     const missing = !fullName.trim() || !dob.trim() || !gender || !phone.trim() || !email.trim();
     if (missing) {
-      setAlertVisible(true);
-      if (dismissTimer.current) clearTimeout(dismissTimer.current);
-      dismissTimer.current = setTimeout(() => {
-        setAlertVisible(false);
-      }, 1200);
+      showAlert('Please fill all required fields', 'error', 1300);
       return;
     }
-    // All fields filled: process account creation as normal without showing success modal
-    navigation.replace('Home');
+    try {
+      await AsyncStorage.multiSet([
+        [STORAGE_KEYS.fullName, fullName],
+        [STORAGE_KEYS.email, email],
+        [STORAGE_KEYS.dob, dob],
+        [STORAGE_KEYS.gender, gender],
+        [STORAGE_KEYS.phone, phone],
+      ]);
+      showAlert('Profile updated!', 'success', 1000);
+    } catch (e) {
+      console.warn('[Profile] Save failed:', e);
+      showAlert('Update failed. Please try again.', 'error', 1400);
+    }
   };
 
   useEffect(() => {
-    // Sync local photo source if avatar changes externally
+    const loadProfile = async () => {
+      try {
+        const entries = await AsyncStorage.multiGet([
+          STORAGE_KEYS.fullName,
+          STORAGE_KEYS.email,
+          STORAGE_KEYS.dob,
+          STORAGE_KEYS.gender,
+          STORAGE_KEYS.phone,
+        ]);
+        const map = Object.fromEntries(entries);
+        setFullName(map[STORAGE_KEYS.fullName] || '');
+        setEmail(map[STORAGE_KEYS.email] || '');
+        setDob(map[STORAGE_KEYS.dob] || '');
+        setGender((map[STORAGE_KEYS.gender] as GenderOption) || '');
+        setPhone(map[STORAGE_KEYS.phone] || '');
+      } catch (e) {
+        console.warn('[Profile] Load failed:', e);
+      }
+    };
+    loadProfile();
+  }, []);
+
+  useEffect(() => {
     if (avatarUri) setPhotoSource({ uri: avatarUri });
     else setPhotoSource(defaultAvatar);
   }, [avatarUri]);
@@ -255,13 +307,13 @@ export default function ProfileScreen() {
                 style={[styles.input, focused === 'email' && styles.inputFocused]}
               />
             </View>
+
+            {/* Save Changes button inside card bottom */}
+            <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges} activeOpacity={0.92}>
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* Create Account button (centered, below card) */}
-        <TouchableOpacity style={styles.updateButton} onPress={handleCreateAccount} activeOpacity={0.92}>
-          <Text style={styles.updateButtonText}>Create Account</Text>
-        </TouchableOpacity>
 
         {/* Image picker options */}
         <Modal visible={pickerVisible} transparent animationType="fade" onRequestClose={handleClosePicker}>
@@ -291,7 +343,9 @@ export default function ProfileScreen() {
         <Modal visible={alertVisible} transparent animationType="fade" onRequestClose={() => setAlertVisible(false)}>
           <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setAlertVisible(false)}>
             <View style={styles.alertCard}>
-              <Text style={styles.alertText}>Please fill all required fields.</Text>
+              <Text style={[styles.alertText, alertVariant === 'success' ? styles.alertTextSuccess : styles.alertTextError]}>
+                {alertMessage}
+              </Text>
             </View>
           </TouchableOpacity>
         </Modal>
@@ -330,7 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     borderWidth: 2,
     borderColor: theme.colors.cardBorder,
-    },
+  },
   cameraBadge: {
     position: 'absolute',
     right: -2,
@@ -347,7 +401,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
-  form: { width: '100%', paddingHorizontal: 20, paddingTop: 70, paddingBottom: 12 },
+  form: { width: '100%', paddingHorizontal: 20, paddingTop: 70, paddingBottom: 18 },
   label: { fontSize: 13, fontWeight: '600', color: theme.colors.brandBlack, marginBottom: 8 },
   fieldRow: {
     flexDirection: 'row',
@@ -363,7 +417,6 @@ const styles = StyleSheet.create({
   fieldIcon: { marginRight: 8 },
   input: { flex: 1, fontSize: 14, color: theme.colors.brandBlack },
   inputFocused: { borderColor: theme.colors.brandYellow },
-
   genderRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   genderChip: {
     flex: 1,
@@ -382,15 +435,13 @@ const styles = StyleSheet.create({
   genderText: { fontSize: 13, color: theme.colors.brandBlack },
   genderTextActive: { fontWeight: '700', color: theme.colors.brandBlack },
 
-  // Create Account button styles
-  updateButton: {
-    width: '80%',
-    maxWidth: 460,
+  // Save Changes button inside card (slightly smaller)
+  saveButton: {
     alignSelf: 'center',
     backgroundColor: theme.colors.brandYellow,
     borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: theme.colors.shadow,
@@ -398,9 +449,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
-    marginTop: 12,
+    marginTop: 4,
+    width: '84%',
   },
-  updateButtonText: { fontSize: 15, fontWeight: '700', color: theme.colors.brandBlack },
+  saveButtonText: { fontSize: 15, fontWeight: '700', color: theme.colors.brandBlack },
 
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
   sheet: { width: '88%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16 },
@@ -428,5 +480,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
-  alertText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
+  alertText: { fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
+  alertTextSuccess: { color: theme.colors.brandYellow },
+  alertTextError: { color: '#FFFFFF' },
 });
+
