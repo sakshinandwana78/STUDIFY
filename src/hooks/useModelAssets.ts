@@ -52,6 +52,7 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 1.2,
+            footprintMeters: 0.6,
             // Helps keep the base flush on horizontal planes if pivot is centered
             baseYOffsetMeters: -0.03,
           },
@@ -64,6 +65,7 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 0.8,
+            footprintMeters: 0.25,
             baseYOffsetMeters: -0.02,
           },
           {
@@ -75,6 +77,7 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 1.9,
+            footprintMeters: 1.0,
           },
           {
             id: 'sun',
@@ -85,6 +88,7 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 1.8,
+            footprintMeters: 0.5,
           },
           {
             id: 'moon',
@@ -95,6 +99,7 @@ const useModelAssets = () => {
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 1.0,
+            footprintMeters: 0.5,
           },
         ];
 

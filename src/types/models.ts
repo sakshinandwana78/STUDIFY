@@ -21,6 +21,8 @@ export interface Model3D {
   defaultPlacementMeters?: number;
   /** Optional: adjust vertical origin so base sits flush on horizontal planes */
   baseYOffsetMeters?: number;
+  /** Approximate footprint width/diameter in meters at defaultScale. */
+  footprintMeters?: number;
 }
 
 /**
