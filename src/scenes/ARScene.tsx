@@ -13,7 +13,6 @@ import {
   ViroTrackingStateConstants,
   ViroARPlane,
   ViroQuad,
-  ViroBox,
   ViroMaterials,
 } from '@viro-community/react-viro';
 import { ARSceneState } from '../types/models';
@@ -56,7 +55,6 @@ const ARScene = (props: any) => {
   const [infoText, setInfoText] = useState<string | null>(null);
   const screen = Dimensions.get('window');
   const autoAnchorRequestedRef = useRef<boolean>(false);
-  const autoPlaceTimerRef = useRef<any>(null);
   const infoTimeoutRef = useRef<any>(null);
   const STABLE_FRAMES_THRESHOLD = 3; // consecutive updates indicating stability (relaxed)
   const MIN_EXTENT_METERS = 0.15;    // ignore tiny planes (min width/height in meters, relaxed)
@@ -88,14 +86,21 @@ const ARScene = (props: any) => {
   const [gridAlpha, setGridAlpha] = useState<number>(0);
   const [gridSize, setGridSize] = useState<[number, number]>([0.6, 0.6]);
   const gridOpacity = gridVisible ? gridAlpha : 0.0;
+  // planeReady is defined later to include fallback and center availability
+  // Fallback readiness: some platforms don’t report plane extent but still provide
+  // a stable horizontal center and upward normal. Use that for instant placement
+  // without changing the underlying plane detection thresholds.
+  const planeReadyFallback =
+    gridVisible &&
+    trackingState === 'TRACKING_NORMAL' &&
+    lastPlaneAlignment === 'Horizontal' &&
+    stablePlane &&
+    (upNormalOk || planeNormalRef.current == null);
 
   // Dynamic model scaling
   const [modelScale, setModelScale] = useState<[number, number, number] | null>(null);
 
-  // Debug: first-plane cube and on-screen plane extent text
-  const DEBUG_CUBE_SIZE = 0.06; // meters
-  const [debugCubePosition, setDebugCubePosition] = useState<[number, number, number] | null>(null);
-  const [hasSpawnedDebugCube, setHasSpawnedDebugCube] = useState<boolean>(false);
+  // Debug: on-screen plane extent text
   const [planeDebugText, setPlaneDebugText] = useState<string | null>(null);
 
   const prevCenterRef = useRef<[number, number, number] | null>(null);
@@ -111,6 +116,14 @@ const ARScene = (props: any) => {
   const bestPlaneRef = useRef<PlanePose | null>(null);
   const [bestPlane, setBestPlane] = useState<PlanePose | null>(null);
   const [planeKey, setPlaneKey] = useState<string>('plane');
+
+  // Final readiness: grid visible, horizontal alignment, confidence (or fallback),
+  // and we have a usable center from either prevCenterRef or bestPlane.
+  const planeReady =
+    gridVisible &&
+    lastPlaneAlignment === 'Horizontal' &&
+    (confidentPlane || planeReadyFallback) &&
+    (!!prevCenterRef.current || !!bestPlane?.center);
 
   useEffect(() => {
     if (!bestPlane) return;
@@ -188,17 +201,6 @@ const ARScene = (props: any) => {
     }
   };
 
-  // Compute a position for the debug cube that sits visibly on the plane.
-  const computeCubePosition = (rawCenter?: [number, number, number] | null): [number, number, number] | null => {
-    const c = rawCenter ?? prevCenterRef.current;
-    if (!c) return null;
-    if (lastPlaneAlignment === 'Horizontal') {
-      const half = DEBUG_CUBE_SIZE / 2;
-      const planeY = c[1];
-      return [c[0], planeY + half, c[2]];
-    }
-    return [c[0], c[1], c[2]];
-  };
 
   const showInfo = (text: string, durationMs = 2000) => {
     try { clearTimeout(infoTimeoutRef.current); } catch {}
@@ -258,6 +260,13 @@ const ARScene = (props: any) => {
     // Some Android builds: extent may be object
     if (extent && typeof extent.width === 'number' && typeof extent.height === 'number') {
       return [Number(extent.width), Number(extent.height)];
+    }
+    // Other variants: anchor.extent may be { x, z } or separate properties extentX/extentZ
+    if (extent && typeof extent.x === 'number' && typeof extent.z === 'number') {
+      return [Number(extent.x), Number(extent.z)];
+    }
+    if (typeof anchor?.extentX === 'number' && typeof anchor?.extentZ === 'number') {
+      return [Number(anchor.extentX), Number(anchor.extentZ)];
     }
     return null;
   };
@@ -334,16 +343,6 @@ const ARScene = (props: any) => {
       clearTimeout(infoTimeoutRef.current);
     } catch {}
     infoTimeoutRef.current = setTimeout(() => setPlaneDebugText(null), 2500);
-
-    // Guaranteed test: spawn a small cube at the first plane center
-    if (!hasSpawnedDebugCube && center) {
-      const cubePos = computeCubePosition(center);
-      if (cubePos) {
-        setDebugCubePosition(cubePos);
-        setHasSpawnedDebugCube(true);
-        console.log('[AR] Debug cube placed at', cubePos);
-      }
-    }
 
     // Choose best horizontal plane by height relative to camera
     if (alignment === 'Horizontal' && center && normal) {
@@ -523,46 +522,71 @@ const ARScene = (props: any) => {
       setStablePlaneFrames(0);
       setLastPlaneExtent([0, 0]);
       setLastPlaneAlignment(null);
-      try { clearTimeout(autoPlaceTimerRef.current); } catch {}
       try { clearTimeout(infoTimeoutRef.current); } catch {}
       setInfoText(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model]);
 
-  // Once the grid appears, auto-place the model after 1 second,
-  // aligned to the plane pose and scaled to match the grid footprint.
+  // Auto-place when a model is selected and the plane/grid are ready.
   useEffect(() => {
-    if (!gridVisible) return;
-    if (!model) return;
-    if (modelPlaced) return;
-    if (autoAnchorRequestedRef.current) return;
-    if (trackingState !== 'TRACKING_NORMAL') return;
-    console.log('[AR] Scheduling 1s placement timer. gridSize=', gridSize, 'tracking=', trackingState);
-
-    const timer = setTimeout(() => {
-      const pos = computeFlushPosition(prevCenterRef.current);
-      if (!pos) return;
-      setModelPosition(pos);
-      const target = Math.min(gridSize[0], gridSize[1]) * 0.9;
-      const baseFootprint = Number(model?.footprintMeters ?? model?.defaultPlacementMeters ?? 1.0);
-      const factor = clamp(target / baseFootprint, 0.5, 2.2);
-      const base = model.defaultScale;
-      setModelScale([base[0] * factor, base[1] * factor, base[2] * factor]);
-      autoAnchorRequestedRef.current = true;
-      showInfo('Placing model on detected surface...', 1200);
-      console.log('[AR] Placing model at', pos, 'scale=', factor, 'planeNormal=', planeNormalRef.current, 'planeRotation=', planeRotationRef.current);
-    }, 1000);
-
-    return () => { try { clearTimeout(timer); } catch {} };
-  }, [gridVisible, model, trackingState, gridSize, modelPlaced]);
-
-  // Hide debug cube after model placement
-  useEffect(() => {
-    if (modelPlaced && debugCubePosition) {
-      setDebugCubePosition(null);
+    if (!model) {
+      if (Constants?.expoConfig?.extra?.DEBUG_AR) {
+        console.log('[AR] Auto-place skipped: no model selected');
+      }
+      return;
     }
-  }, [modelPlaced]);
+    if (!planeReady) {
+      if (Constants?.expoConfig?.extra?.DEBUG_AR) {
+        console.log('[AR] Auto-place skipped: plane not ready', {
+          gridVisible,
+          lastPlaneAlignment,
+          confidentPlane,
+          planeReadyFallback,
+          hasCenter: !!prevCenterRef.current || !!bestPlane?.center,
+        });
+      }
+      return;
+    }
+    if (autoAnchorRequestedRef.current) {
+      if (Constants?.expoConfig?.extra?.DEBUG_AR) {
+        console.log('[AR] Auto-place skipped: already requested');
+      }
+      return;
+    }
+
+    const center: [number, number, number] | null =
+      (prevCenterRef.current as [number, number, number] | null) ??
+      (bestPlane?.center as [number, number, number] | undefined) ??
+      null;
+
+    const pos = computeFlushPosition(center);
+    if (!pos) return;
+
+    const target = Math.min(Number(gridSize[0]), Number(gridSize[1])) * 0.9;
+    const baseFootprint = Number(model.footprintMeters ?? model.defaultPlacementMeters ?? 1.0);
+    const factor = clamp(target / baseFootprint, 0.5, 2.2);
+    const base = model.defaultScale as any;
+    let scale: [number, number, number];
+    if (Array.isArray(base) && base.length >= 3) {
+      scale = [Number(base[0]) * factor, Number(base[1]) * factor, Number(base[2]) * factor];
+    } else {
+      const b = Number(base ?? 1.0);
+      scale = [b * factor, b * factor, b * factor];
+    }
+
+    console.log('[AR] Auto place after select', {
+      model: model.id,
+      center,
+      gridSize,
+      factor,
+    });
+
+    setModelPosition(pos);
+    setModelScale(scale);
+    autoAnchorRequestedRef.current = true; // one-shot
+    showInfo('Placing model on detected surface...', 1200);
+  }, [model, planeReady, gridSize, bestPlane]);
 
   
 
@@ -595,18 +619,6 @@ const ARScene = (props: any) => {
           shadowOpacity={0.7}
         />
 
-        {/* Debug cube rendered at first plane center (world coordinates) */}
-        {debugCubePosition && !modelPlaced && (
-          <ViroNode position={debugCubePosition}>
-            <ViroBox
-              width={DEBUG_CUBE_SIZE}
-              height={DEBUG_CUBE_SIZE}
-              length={DEBUG_CUBE_SIZE}
-              materials={["planeIndicator"]}
-              opacity={0.85}
-            />
-          </ViroNode>
-        )}
 
         {/* Plane detection indicator & tap-to-place */}
         {/* Horizontal plane indicator */}
@@ -622,59 +634,10 @@ const ARScene = (props: any) => {
             handlePlaneAnchor(e, 'Horizontal');
           }}
           onAnchorRemoved={() => { setPlaneDetected(false); setStablePlaneFrames(0); setLastPlaneExtent([0,0]); prevCenterRef.current = null; }}
-          onClick={(event: any) => {
-            if (autoAnchorRequestedRef.current || modelPlaced) return;
-            const pos = event?.nativeEvent?.position as [number, number, number] | undefined;
-            const canTap = planeTapAllowed || confidentPlane;
-            if (!model || !canTap) return;
-            const p = pos ?? getPositionFromAnchorEvent(event);
-            const adjusted = computeFlushPosition(p);
-            if (adjusted) {
-              setModelPosition(adjusted);
-              setHintVisible(false);
-              if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                console.log('[AR] Tap Horizontal plane pos=', pos, 'fallback=', p);
-              }
-            } else {
-              if (onError) onError('Couldn\u2019t determine tap position. Try a larger, steadier surface.');
-              if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                console.warn('[AR] Tap Horizontal: no position/fallback available');
-              }
-            }
-          }}
+          onClick={(event: any) => { /* tap-to-place disabled */ return; }}
         >
           <ViroNode
-            onClick={(event: any) => {
-              if (autoAnchorRequestedRef.current || modelPlaced) return;
-              const pos = event?.nativeEvent?.position as [number, number, number] | undefined;
-              if (!pos) {
-                const fallback = getPositionFromAnchorEvent(event);
-                const canTap = planeTapAllowed || confidentPlane;
-                if (fallback && model && canTap) {
-                  const adjusted = computeFlushPosition(fallback);
-                  setModelPosition(adjusted);
-                  setHintVisible(false);
-                  if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                    console.log('[AR] Node Tap Horizontal fallback=', fallback);
-                  }
-                } else if (!fallback) {
-                  if (onError) onError('Tap didn\u2019t produce a position. Move device slightly and try again.');
-                  if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                    console.warn('[AR] Node Tap Horizontal: no position/fallback');
-                  }
-                }
-                return;
-              }
-              const canTap = planeTapAllowed || confidentPlane;
-              if (pos && model && canTap) {
-                const adjusted = computeFlushPosition(pos);
-                setModelPosition(adjusted);
-                setHintVisible(false);
-                if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                  console.log('[AR] Node Tap Horizontal pos=', pos);
-                }
-              }
-            }}
+            onClick={(event: any) => { /* tap-to-place disabled */ return; }}
           >
             <ViroQuad
               rotation={[-90, (planeRotationRef.current ? planeRotationRef.current[1] : 0), 0]}
@@ -683,37 +646,7 @@ const ARScene = (props: any) => {
               height={gridSize[1]}
               materials={["planeIndicator"]}
               opacity={gridOpacity}
-              onClick={(event: any) => {
-                if (autoAnchorRequestedRef.current || modelPlaced) return;
-                const pos = event?.nativeEvent?.position as [number, number, number] | undefined;
-                if (!pos) {
-                  const fallback = getPositionFromAnchorEvent(event);
-                  const canTap = planeTapAllowed || confidentPlane;
-                  if (fallback && model && canTap) {
-                    const adjusted = computeFlushPosition(fallback);
-                    setModelPosition(adjusted);
-                    setHintVisible(false);
-                    if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                      console.log('[AR] Quad Tap Horizontal fallback=', fallback);
-                    }
-                  } else if (!fallback) {
-                    if (onError) onError('Tap failed to resolve a position. Try a larger or brighter surface.');
-                    if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                      console.warn('[AR] Quad Tap Horizontal: no position/fallback');
-                    }
-                  }
-                  return;
-                }
-                const canTap = planeTapAllowed || confidentPlane;
-                if (pos && model && canTap) {
-                  const adjusted = computeFlushPosition(pos);
-                  setModelPosition(adjusted);
-                  setHintVisible(false);
-                  if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                    console.log('[AR] Quad Tap Horizontal pos=', pos);
-                  }
-                }
-              }}
+              onClick={(event: any) => { /* tap-to-place disabled */ return; }}
             />
           </ViroNode>
         </ViroARPlane>
