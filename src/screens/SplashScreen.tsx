@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, ImageBackground } from 'react-native';
 // Use the new splash image; require() is most robust with Metro
-const heyImage = require('../../assets/tudify (1080 x 1920 px).png');
+const heyImage = require('../../assets/studify (1080 x 1920 px) (2).png');
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type RootStackParamList = {

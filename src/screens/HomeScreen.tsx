@@ -1,17 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Dimensions, Image, Pressable } from 'react-native';
-import Svg, { Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { View, Text, StyleSheet, SafeAreaView, Dimensions, Image, ScrollView, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import BottomNavBar from '../components/BottomNavBar';
 import FeatureCard from '../components/FeatureCard';
 import { StartLessonIcon, TakeQuizIcon, DownloadOfflineIcon, ARPlayerIcon, TeacherReportsIcon, AdminFlagsIcon } from '../ui/atoms/BrandIcons';
 import { theme } from '../ui/tokens/theme';
-import { ThemeProvider, useTheme } from '../ui/tokens/theme.tsx';
-import GradientBackground from '../ui/molecules/GradientBackground';
+import { useTheme } from '../ui/tokens/theme.tsx';
 import TopHeaderBar from '../ui/molecules/TopHeaderBar';
+// Removed gradient wrapper to use a clean light grey-blue root background
 import SideDrawer from '../ui/molecules/SideDrawer';
-import ConfirmModal from '../ui/molecules/ConfirmModal';
+import LogoutModal from '../ui/molecules/LogoutModal';
 import Snackbar from '../ui/atoms/Snackbar';
 import { signOut } from '../auth/AuthService';
 import { Chewy_400Regular } from '@expo-google-fonts/chewy';
@@ -41,30 +39,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [snackVisible, setSnackVisible] = useState(false);
   const [snackMessage, setSnackMessage] = useState('');
   const [snackType, setSnackType] = useState<'success' | 'error' | 'info'>('info');
-
-  // Banner quotes and simple cycling handler
-  const quotes = useMemo(
-    () => [
-      'Step into a new dimension of learning. Understand faster and explore deeper with interactive augmented reality.',
-      'Learning that feels alive. Explore more, understand better, and stay curious every day.',
-      'Experience lessons the smart way—AR makes every concept interactive and engaging for all learners.',
-    ],
-    []
-  );
-  const [quoteIndex, setQuoteIndex] = useState(0);
-  const nextQuote = () => setQuoteIndex((i) => (i + 1) % quotes.length);
-
-  const currentQuote = quotes[quoteIndex];
-  const [headline, body] = useMemo(() => {
-    const parts = String(currentQuote).split('. ');
-    if (parts.length > 1) {
-      return [parts[0], parts.slice(1).join('. ')];
-    }
-    return [String(currentQuote), ''];
-  }, [currentQuote]);
-
-  // Apply slightly smaller headline for the long “Experience lessons…” quote
-  const isExperienceQuote = currentQuote.startsWith('Experience lessons the smart way—');
+  
 
   const requestLogout = () => {
     setDrawerOpen(false);
@@ -105,24 +80,24 @@ export default function HomeScreen({ navigation }: Props) {
 
   const learning = useMemo(
     () => [
-      { key: 'StudentLessons', title: 'Start Lesson', icon: 'book-outline' as const, accent: theme.colors.accentBlue, brandIcon: <StartLessonIcon size={28} /> },
-      { key: 'Quiz', title: 'Take Quiz', icon: 'clipboard-outline' as const, accent: theme.colors.accentGreen, brandIcon: <TakeQuizIcon size={28} /> },
+      { key: 'StudentLessons', title: 'Start Lesson', icon: 'book-outline' as const, accent: theme.colors.accentBlue, assetIcon: require('../../assets/icons/educational-video.png') },
+      { key: 'Quiz', title: 'Take Quiz', icon: 'clipboard-outline' as const, accent: theme.colors.accentGreen, assetIcon: require('../../assets/icons/quiz.png') },
     ],
     []
   );
 
   const resources = useMemo(
     () => [
-      { key: 'OfflineDownloads', title: 'Download Offline', icon: 'cloud-download-outline' as const, accent: theme.colors.accentCoral, brandIcon: <DownloadOfflineIcon size={28} /> },
-      { key: 'ARCamera', title: 'AR Player', icon: 'camera-outline' as const, accent: theme.colors.accentTeal, brandIcon: <ARPlayerIcon size={28} /> },
+      { key: 'OfflineDownloads', title: 'Download Offline', icon: 'cloud-download-outline' as const, accent: theme.colors.accentCoral, assetIcon: require('../../assets/icons/play.png') },
+      { key: 'ARCamera', title: 'AR Player', icon: 'camera-outline' as const, accent: theme.colors.accentTeal, assetIcon: require('../../assets/icons/virtual-reality.png') },
     ],
     []
   );
 
   const teacherPanel = useMemo(
     () => [
-      { key: 'TeacherReports', title: 'Teacher Reports', icon: 'stats-chart-outline' as const, accent: theme.colors.accentPurple, brandIcon: <TeacherReportsIcon size={28} /> },
-      { key: 'AdminLiteFlags', title: 'Admin Flags', icon: 'flag-outline' as const, accent: theme.colors.accentGray, brandIcon: <AdminFlagsIcon size={28} /> },
+      { key: 'TeacherReports', title: 'Teacher Reports', icon: 'stats-chart-outline' as const, accent: theme.colors.accentPurple, assetIcon: require('../../assets/icons/training.png') },
+      { key: 'AdminLiteFlags', title: 'Admin Flags', icon: 'flag-outline' as const, accent: theme.colors.accentGray, assetIcon: require('../../assets/icons/flag.png') },
     ],
     []
   );
@@ -133,81 +108,50 @@ export default function HomeScreen({ navigation }: Props) {
   }
 
   return (
-    <GradientBackground>
       <SafeAreaView style={styles.safe}>
-        <ThemeProvider initialMode={'light'}>
+        <ImageBackground
+          source={require('../../assets/Copy of STUDIFY (7).png')}
+          style={{ flex: 1, width: '100%', height: '100%' }}
+          resizeMode="cover"
+        >
           <View style={styles.container}>
             <TopHeaderBar onMenuPress={() => setDrawerOpen(true)} />
 
-            {/* Hero section (centered) */}
-            <View style={[styles.heroCentered, { paddingTop: insets.top + 6 }]}> 
-              {/* Illustration: centered below header, revert to impactful size */}
-              <View style={[styles.illustrationBox, { height: Dimensions.get('window').height * 0.25 }]}> 
-                <Image
-                  source={require('../../assets/ChatGPT Image Nov 20, 2025, 01_49_58 PM.png')}
-                  style={styles.illustration}
-                  resizeMode="cover"
-                />
-              </View>
-              <Pressable style={styles.banner} onPress={nextQuote}>
-                <Svg style={styles.bannerGradientSvg} width="100%" height="100%">
-              <Defs>
-                <LinearGradient id="bannerGrad" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0%" stopColor="#FFE36E" stopOpacity={0.6} />
-                  <Stop offset="100%" stopColor="#FFD64D" stopOpacity={0.9} />
-                </LinearGradient>
-              </Defs>
-              <Rect x={0} y={0} width="100%" height="100%" fill="url(#bannerGrad)" />
-            </Svg>
-                <View style={styles.bannerContent}>
-                  <View style={styles.bannerTextColumn}>
-                    <Text style={[styles.bannerHeadline, isExperienceQuote && styles.bannerHeadlineSmall]}>{headline}</Text>
-                    {body ? <Text style={styles.bannerBody}>{body}</Text> : null}
-                  </View>
-                  <Image
-                    source={require('../../assets/reading.png')}
-                    style={styles.bannerStickerRight}
-                    resizeMode="contain"
-                  />
-                </View>
-              </Pressable>
-            {/* Hero tagline removed per request */}
+            {/* Scrollable content area; cards anchored near bottom */}
+              <ScrollView
+                contentContainerStyle={[
+                  styles.contentScroll,
+                  { flexGrow: 1, justifyContent: 'flex-end', paddingBottom: insets.bottom + 40 }
+                ]}
+                showsVerticalScrollIndicator={false}
+              >
+              {/* Old hero illustration removed as requested */}
 
-            </View>
-
-            {/* Feature grid: 2 rows x 3 columns (responsive) */}
-            <View style={[styles.gridRows, { paddingBottom: insets.bottom + 136 }]}>              
-              {/* Row 1 */}
-              <View style={styles.row}> 
-                {[learning[0], resources[0], teacherPanel[0]].map((item) => (
-                  <View key={item.key} style={styles.cardCell}>
+              {/* Feature cards grid: 2 columns × 3 rows (wrapped) */}
+              <View style={styles.gridWrap}>
+                {[
+                  learning[0],
+                  learning[1],
+                  resources[0],
+                  resources[1],
+                  teacherPanel[0],
+                  teacherPanel[1],
+                ].map((item) => (
+                  <View key={item.key} style={styles.cardCellTwoCol}>
                     <FeatureCard
                       title={item.title}
                       icon={item.icon}
-                      brandIcon={item.brandIcon}
+                      iconAsset={item.assetIcon}
                       onPress={() => navigation.navigate(item.key as any)}
                       accentColor={item.accent}
+                      backgroundColor={'#FFFFFF'}
+                      height={112}
                     />
                   </View>
                 ))}
               </View>
-              {/* Row 2 */}
-              <View style={styles.row}> 
-                {[learning[1], resources[1], teacherPanel[1]].map((item) => (
-                  <View key={item.key} style={styles.cardCell}>
-                    <FeatureCard
-                      title={item.title}
-                      icon={item.icon}
-                      brandIcon={item.brandIcon}
-                      onPress={() => navigation.navigate(item.key as any)}
-                      accentColor={item.accent}
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
+            </ScrollView>
 
-            <BottomNavBar />
             <SideDrawer
               open={drawerOpen}
               onClose={() => setDrawerOpen(false)}
@@ -218,13 +162,9 @@ export default function HomeScreen({ navigation }: Props) {
               }}
             />
 
-            {/* Confirm logout modal */}
-            <ConfirmModal
+            {/* Logout modal */}
+            <LogoutModal
               visible={logoutConfirmVisible}
-              title="Confirm Logout"
-              message="Are you sure you want to logout?"
-              confirmLabel="Logout"
-              cancelLabel="Cancel"
               onConfirm={handleLogout}
               onCancel={() => setLogoutConfirmVisible(false)}
             />
@@ -237,19 +177,18 @@ export default function HomeScreen({ navigation }: Props) {
               onHide={() => setSnackVisible(false)}
             />
           </View>
-        </ThemeProvider>
+        </ImageBackground>
       </SafeAreaView>
-    </GradientBackground>
   );
 }
 
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F2' },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   container: {
     flex: 1,
-    backgroundColor:'#F2F2F2',
+    backgroundColor: 'transparent',
   },
   content: {
     paddingTop: 0,
@@ -258,7 +197,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.md, // tighten gap above grid while keeping breathing room
+    paddingBottom: theme.spacing.sm,
   },
   illustrationBox: {
     width: '100%',
@@ -276,7 +215,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textAlign: 'center',
     color: theme.colors.primary,
-    fontFamily: 'Chewy_400Regular',
+    fontWeight: '800',
   },
   titleCentered: {
     fontSize: 26,
@@ -298,8 +237,8 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
-    // Slightly darker grey for premium contrast
-    backgroundColor: '#E6E6E6',
+    // White card for content areas
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.cardBorder,
@@ -330,7 +269,7 @@ const styles = StyleSheet.create({
   // New yellow banner that nestles under the hero illustration
   banner: {
     width: '100%',
-    backgroundColor: '#FFD64D',
+    backgroundColor: theme.colors.background,
     borderRadius: 16,
     paddingHorizontal: theme.spacing.lg, // consistent 16dp padding on sides
     paddingVertical: theme.spacing.md,   // tightened vertical padding to curb growth
@@ -377,7 +316,7 @@ const styles = StyleSheet.create({
     paddingLeft: 2,
   },
   bannerHeadline: {
-    color: '#000000',
+    color: theme.colors.primary,
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '700',
@@ -412,11 +351,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#000000',
+    backgroundColor: theme.colors.primaryBg,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.lg,
   },
   bannerArrowText: {
     color: '#FFFFFF',
@@ -436,7 +375,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   promoText: {
-    color: '#444444',
+    color: theme.colors.subtleText,
     fontSize: 12,
     lineHeight: 18,
     fontStyle: 'italic',
@@ -476,20 +415,28 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 0,
   },
-  gridRows: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-    paddingHorizontal: theme.spacing.lg,
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.sm, // slightly closer spacing under banner
-  },
-  row: {
+  gridWrap: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'stretch',
-    marginBottom: theme.spacing.lg,
+    flexWrap: 'wrap',
+    alignContent: 'center',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 18,
+    marginTop: 26,
+    paddingBottom: 36,
   },
-  cardCell: {
-    width: '32%',
+  contentScroll: {
+    paddingBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  contentScroll: {
+    paddingBottom: theme.spacing.sm,
+  },
+  cardCellTwoCol: {
+    width: '43%',
+    flexBasis: '43%',
+    flexGrow: 0,
+    flexShrink: 0,
+    marginHorizontal: 0,
+    marginBottom: 16,
   },
 });

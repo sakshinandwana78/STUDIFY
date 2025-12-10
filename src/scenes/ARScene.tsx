@@ -97,7 +97,7 @@ const ARScene = (props: any) => {
     stablePlane &&
     (upNormalOk || planeNormalRef.current == null);
 
-  // Dynamic model scaling
+  // Fixed model scaling: use per-model defaultScale only
   const [modelScale, setModelScale] = useState<[number, number, number] | null>(null);
 
   // Debug: on-screen plane extent text
@@ -127,7 +127,8 @@ const ARScene = (props: any) => {
 
   useEffect(() => {
     if (!bestPlane) return;
-    // Force the ViroARPlane subtree to remount, nudging it to re-anchor
+    // Do not change anchor once auto-placement has been requested; keep it fixed
+    if (autoAnchorRequestedRef.current) return;
     const nextKey = bestPlane.id ? String(bestPlane.id) : `y:${bestPlane.center[1].toFixed(3)}`;
     setPlaneKey(nextKey);
   }, [bestPlane]);
@@ -227,10 +228,19 @@ const ARScene = (props: any) => {
       return { uri } as any;
     }
     if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-      console.warn('[AR] No valid source for model', model.id);
+      console.warn('[AR] No valid source for model', model?.id ?? '(unknown)');
     }
     return undefined as any;
   }, [model]);
+
+  const hasValidSource = useMemo(() => {
+    if (!resolvedSource) return false;
+    const t = typeof resolvedSource;
+    // Accept Metro module id (number) or RN image/model source object with uri
+    return (
+      t === 'number' || (t === 'object' && !!(resolvedSource as any)?.uri)
+    );
+  }, [resolvedSource]);
 
   // Handle AR tracking updates
   const handleTrackingUpdated = (state: any) => {
@@ -563,27 +573,15 @@ const ARScene = (props: any) => {
     const pos = computeFlushPosition(center);
     if (!pos) return;
 
-    const target = Math.min(Number(gridSize[0]), Number(gridSize[1])) * 0.9;
-    const baseFootprint = Number(model.footprintMeters ?? model.defaultPlacementMeters ?? 1.0);
-    const factor = clamp(target / baseFootprint, 0.5, 2.2);
-    const base = model.defaultScale as any;
-    let scale: [number, number, number];
-    if (Array.isArray(base) && base.length >= 3) {
-      scale = [Number(base[0]) * factor, Number(base[1]) * factor, Number(base[2]) * factor];
-    } else {
-      const b = Number(base ?? 1.0);
-      scale = [b * factor, b * factor, b * factor];
-    }
-
     console.log('[AR] Auto place after select', {
       model: model.id,
       center,
       gridSize,
-      factor,
     });
 
     setModelPosition(pos);
-    setModelScale(scale);
+    // Fixed scale: use defaultScale only; do not vary by distance or plane size
+    setModelScale(null);
     autoAnchorRequestedRef.current = true; // one-shot
     showInfo('Placing model on detected surface...', 1200);
   }, [model, planeReady, gridSize, bestPlane]);
@@ -620,7 +618,7 @@ const ARScene = (props: any) => {
         />
 
 
-        {/* Plane detection indicator & tap-to-place */}
+        {/* Plane detection indicator & auto-placement anchored to plane */}
         {/* Horizontal plane indicator */}
         <ViroARPlane
           key={planeKey}
@@ -649,41 +647,51 @@ const ARScene = (props: any) => {
               onClick={(event: any) => { /* tap-to-place disabled */ return; }}
             />
           </ViroNode>
+
+          {/* Auto-placed model anchored to the plane center */}
+          {model && modelPosition && hasValidSource && (
+            <ViroNode
+              ref={arNodeRef}
+              position={[0, Number(model?.baseYOffsetMeters ?? 0), 0]}
+              ignoreEventHandling={false}
+            >
+              <Viro3DObject
+                source={resolvedSource}
+                resources={model.resources ?? []}
+                position={[0, 0, 0]}
+                scale={model.defaultScale}
+                rotation={model.defaultRotation}
+                type="GLB"
+                lightReceivingBitMask={3}
+                shadowCastingBitMask={2}
+                onLoadStart={() => {
+                  if (Constants?.expoConfig?.extra?.DEBUG_AR) {
+                    console.log('[AR] onLoadStart for', model.id);
+                  }
+                  setModelPlaced(false);
+                }}
+                onLoadEnd={() => {
+                  if (Constants?.expoConfig?.extra?.DEBUG_AR) {
+                    console.log('[AR] onLoadEnd for', model.id);
+                  }
+                  markModelPlaced();
+                }}
+                onError={handleModelError}
+                highAccuracyEvents={true}
+              />
+            </ViroNode>
+          )}
         </ViroARPlane>
 
-
-        {/* Auto-placed node: fixed in world coordinates in front of camera */}
-        {model && modelPosition && (
-          <ViroNode
-            ref={arNodeRef}
-            position={modelPosition}
-            ignoreEventHandling={false}
-          >
-            <Viro3DObject
-              source={resolvedSource}
-              resources={model.resources ?? []}
-              position={[0, 0, 0]}
-              scale={modelScale || model.defaultScale}
-              rotation={model.defaultRotation}
-              type="GLB"
-              lightReceivingBitMask={3}
-              shadowCastingBitMask={2}
-              onLoadStart={() => {
-                if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                  console.log('[AR] onLoadStart for', model.id);
-                }
-                setModelPlaced(false);
-              }}
-              onLoadEnd={() => {
-                if (Constants?.expoConfig?.extra?.DEBUG_AR) {
-                  console.log('[AR] onLoadEnd for', model.id);
-                }
-                markModelPlaced();
-              }}
-              onError={handleModelError}
-              highAccuracyEvents={true}
-            />
-          </ViroNode>
+        {/* Guarded warning when a model is selected but source cannot be resolved */}
+        {model && modelPosition && !hasValidSource && (
+          <ViroText
+            text={Constants?.expoConfig?.extra?.DEBUG_AR ? 'Model source missing' : ''}
+            position={[0, 0.20, -1]}
+            style={styles.statusText}
+            width={2}
+            height={2}
+          />
         )}
 
         {/* Status chip */}

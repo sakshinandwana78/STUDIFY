@@ -65,14 +65,14 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   image: { width: '90%', height: 300, marginBottom: 24 },
   title: { color: '#FFFFFF', fontSize: 24, fontWeight: '700', letterSpacing: 0.2 },
-  sub: { marginTop: 10, color: theme.colors.headerGray, fontSize: 14, lineHeight: 20, textAlign: 'center', paddingHorizontal: 10 },
+  sub: { marginTop: 10, color: theme.colors.subtleText, fontSize: 14, lineHeight: 20, textAlign: 'center', paddingHorizontal: 10 },
   footer: { paddingHorizontal: 20, paddingBottom: 24 },
   primary: {
-    backgroundColor: theme.colors.brandYellow,
+    backgroundColor: theme.colors.accentBlue,
     borderRadius: 18,
     height: 56,
     alignItems: 'center',
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
-  primaryLabel: { color: theme.colors.brandBlack, fontSize: 16, fontWeight: '700', letterSpacing: 0.2 },
+  primaryLabel: { color: theme.colors.secondaryBg, fontSize: 16, fontWeight: '700', letterSpacing: 0.2 },
   skip: { marginTop: 10, alignItems: 'center', paddingVertical: 8 },
   skipLabel: { color: '#B5BCD1', fontSize: 13 },
 });

@@ -13,11 +13,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../ui/tokens/theme';
+import { useTheme } from '../ui/tokens/theme.tsx';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { useAvatar } from '../ui/providers/AvatarProvider';
 import * as ImagePicker from 'expo-image-picker';
+import AuthInput from './auth/AuthInput';
 
 type GenderOption = 'Male' | 'Female' | 'Other' | 'Prefer not to say' | '';
 
@@ -25,6 +27,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const defaultAvatar = useMemo(() => require('../../assets/android-profile-icon-2.jpg'), []);
   const { avatarUri, setAvatarUri } = useAvatar();
+  const { theme: t } = useTheme();
 
   const [photoSource, setPhotoSource] = useState<any>(avatarUri ? { uri: avatarUri } : defaultAvatar);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -34,7 +37,7 @@ export default function ProfileScreen() {
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState<GenderOption>('');
   const [phone, setPhone] = useState('');
-  const [focused, setFocused] = useState<string | null>(null);
+  // Inputs are rendered via AuthInput which manages its own focus styling
 
   // Success modal state
   const [successVisible, setSuccessVisible] = useState(false);
@@ -167,50 +170,23 @@ export default function ProfileScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: t.colors.background }]}>
       <View style={styles.contentNoScroll}>
-        {/* Card with arc header */}
-        <View style={styles.card}>
-          <View style={styles.arcHeader} />
+        {/* Avatar header on light background (no outer rounded card) */}
+        <View style={styles.avatarWrap}>
+          <Image source={photoSource} style={styles.avatar} resizeMode="cover" />
+          <TouchableOpacity style={styles.cameraBadge} onPress={handleOpenPicker} activeOpacity={0.85}>
+            <Ionicons name="camera" size={18} color={theme.colors.secondaryBg} />
+          </TouchableOpacity>
+        </View>
 
-          {/* Overlapped avatar */}
-          <View style={styles.avatarWrap}>
-            <Image source={photoSource} style={styles.avatar} resizeMode="cover" />
-            <TouchableOpacity style={styles.cameraBadge} onPress={handleOpenPicker} activeOpacity={0.85}>
-              <Ionicons name="camera" size={18} color={theme.colors.brandBlack} />
-            </TouchableOpacity>
-          </View>
+        {/* Form fields below avatar */}
+        <View style={styles.form}>
+          <AuthInput label="Full Name" placeholder="Enter your full name" value={fullName} onChangeText={setFullName} icon={'person-outline'} variant="light" />
 
-          {/* Form fields start directly under avatar */}
-          <View style={styles.form}>
-            <Text style={styles.label}>Full Name</Text>
-            <View style={styles.fieldRow}>
-              <Ionicons name="person-outline" size={18} color={theme.colors.brandBlack} style={styles.fieldIcon} />
-              <TextInput
-                value={fullName}
-                onChangeText={setFullName}
-                onFocus={() => setFocused('name')}
-                onBlur={() => setFocused(null)}
-                placeholder="Enter your full name"
-                style={[styles.input, focused === 'name' && styles.inputFocused]}
-              />
-            </View>
+          <AuthInput label="Date of Birth" placeholder="YYYY-MM-DD" value={dob} onChangeText={setDob} keyboardType="numeric" icon={'calendar-outline'} variant="light" />
 
-            <Text style={styles.label}>Date of Birth</Text>
-            <View style={styles.fieldRow}>
-              <Ionicons name="calendar-outline" size={18} color={theme.colors.brandBlack} style={styles.fieldIcon} />
-              <TextInput
-                value={dob}
-                onChangeText={setDob}
-                onFocus={() => setFocused('dob')}
-                onBlur={() => setFocused(null)}
-                placeholder="YYYY-MM-DD"
-                keyboardType="numeric"
-                style={[styles.input, focused === 'dob' && styles.inputFocused]}
-              />
-            </View>
-
-            <Text style={styles.label}>Gender</Text>
+          <Text style={styles.label}>Gender</Text>
             <View style={styles.genderRow}>
               {(['Male', 'Female', 'Other'] as GenderOption[]).map((opt) => {
                 const active = gender === opt;
@@ -226,41 +202,18 @@ export default function ProfileScreen() {
                 );
               })}
             </View>
+          <AuthInput label="Phone Number" placeholder="+1 234 567 890" value={phone} onChangeText={setPhone} keyboardType="phone-pad" icon={'call-outline'} variant="light" />
 
-            <Text style={styles.label}>Phone Number</Text>
-            <View style={styles.fieldRow}>
-              <Ionicons name="call-outline" size={18} color={theme.colors.brandBlack} style={styles.fieldIcon} />
-              <TextInput
-                value={phone}
-                onChangeText={setPhone}
-                onFocus={() => setFocused('phone')}
-                onBlur={() => setFocused(null)}
-                placeholder="+1 234 567 890"
-                keyboardType="phone-pad"
-                style={[styles.input, focused === 'phone' && styles.inputFocused]}
-              />
-            </View>
-
-            <Text style={styles.label}>Email Address</Text>
-            <View style={styles.fieldRow}>
-              <Ionicons name="mail-outline" size={18} color={theme.colors.brandBlack} style={styles.fieldIcon} />
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                onFocus={() => setFocused('email')}
-                onBlur={() => setFocused(null)}
-                placeholder="you@example.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                style={[styles.input, focused === 'email' && styles.inputFocused]}
-              />
-            </View>
-          </View>
+          <AuthInput label="Email Address" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" icon={'mail-outline'} variant="light" />
         </View>
 
-        {/* Create Account button (centered, below card) */}
-        <TouchableOpacity style={styles.updateButton} onPress={handleCreateAccount} activeOpacity={0.92}>
-          <Text style={styles.updateButtonText}>Create Account</Text>
+        {/* Primary action button matching Sign In/Create Account style */}
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: t.colors.buttonPrimary }]}
+          onPress={handleCreateAccount}
+          activeOpacity={0.92}
+        >
+          <Text style={[styles.updateButtonText, { color: t.colors.onPrimary }]}>Create Account</Text>
         </TouchableOpacity>
 
         {/* Image picker options */}
@@ -269,15 +222,15 @@ export default function ProfileScreen() {
             <View style={styles.sheet}>
               <Text style={styles.sheetTitle}>Profile Photo</Text>
               <TouchableOpacity style={styles.sheetItem} onPress={handleTakePhoto}>
-                <Ionicons name="camera" size={18} color={theme.colors.brandBlack} />
+                <Ionicons name="camera" size={18} color={theme.colors.textDark} />
                 <Text style={styles.sheetText}>Take Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.sheetItem} onPress={handleChooseFromLibrary}>
-                <Ionicons name="image" size={18} color={theme.colors.brandBlack} />
+                <Ionicons name="image" size={18} color={theme.colors.textDark} />
                 <Text style={styles.sheetText}>Choose from Library</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.sheetItem} onPress={handleRemovePhoto}>
-                <Ionicons name="trash" size={18} color={theme.colors.brandBlack} />
+                <Ionicons name="trash" size={18} color={theme.colors.textDark} />
                 <Text style={styles.sheetText}>Remove Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.sheetCancel} onPress={handleClosePicker}>
@@ -301,36 +254,17 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0B0F13' },
+  screen: { flex: 1, backgroundColor: '#F4F7FB' },
   contentNoScroll: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 18 },
-  card: {
-    width: '92%',
-    maxWidth: 460,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 8,
-    overflow: 'hidden',
-    alignItems: 'center',
-  },
-  arcHeader: {
-    width: '100%',
-    height: 100,
-    backgroundColor: theme.colors.brandYellow,
-    borderBottomLeftRadius: 90,
-    borderBottomRightRadius: 90,
-  },
-  avatarWrap: { position: 'absolute', top: 60, alignItems: 'center' },
+  // Simplified header/avatar section
+  avatarWrap: { alignItems: 'center', marginTop: 12, marginBottom: 16 },
   avatar: {
     width: 96,
     height: 96,
     borderRadius: 48,
     borderWidth: 2,
-    borderColor: theme.colors.cardBorder,
-    },
+    borderColor: '#ccd8f0',
+  },
   cameraBadge: {
     position: 'absolute',
     right: -2,
@@ -338,7 +272,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.colors.brandYellow,
+    backgroundColor: '#6286cb',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: theme.colors.shadow,
@@ -347,22 +281,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
-  form: { width: '100%', paddingHorizontal: 20, paddingTop: 70, paddingBottom: 12 },
-  label: { fontSize: 13, fontWeight: '600', color: theme.colors.brandBlack, marginBottom: 8 },
-  fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.cardBorder,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#FAFAFA',
-    marginBottom: 10,
-  },
-  fieldIcon: { marginRight: 8 },
-  input: { flex: 1, fontSize: 14, color: theme.colors.brandBlack },
-  inputFocused: { borderColor: theme.colors.brandYellow },
+  form: { width: '92%', maxWidth: 420 },
+  label: { fontSize: 13, fontWeight: '600', color: theme.colors.textDark, marginBottom: 8 },
 
   genderRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   genderChip: {
@@ -371,62 +291,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.25,
-    borderColor: theme.colors.brandBlack,
-    borderRadius: 20,
-    paddingHorizontal: 12,
+    borderColor: theme.colors.cardBorder,
+    borderRadius: 18,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     marginRight: 8,
     backgroundColor: '#FFFFFF',
   },
-  genderChipActive: { borderColor: theme.colors.brandBlack, backgroundColor: theme.colors.brandYellow },
-  genderText: { fontSize: 13, color: theme.colors.brandBlack },
-  genderTextActive: { fontWeight: '700', color: theme.colors.brandBlack },
+  genderChipActive: { borderColor: theme.colors.brandYellow, backgroundColor: theme.colors.brandYellow },
+  genderText: { fontSize: 13, fontWeight: '600', color: theme.colors.textDark },
+  genderTextActive: { fontWeight: '700', color: '#FFFFFF' },
 
-  // Create Account button styles
-  updateButton: {
-    width: '80%',
-    maxWidth: 460,
+  // Primary button styled like Login/Sign Up
+  primaryButton: {
+    width: '92%',
+    maxWidth: 420,
     alignSelf: 'center',
-    backgroundColor: theme.colors.brandYellow,
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: '#3f60a0',
+    borderRadius: 16,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: theme.colors.shadow,
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
-    marginTop: 12,
+    marginTop: 8,
   },
-  updateButtonText: { fontSize: 15, fontWeight: '700', color: theme.colors.brandBlack },
+  updateButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
-  sheet: { width: '88%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16 },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: theme.colors.brandBlack, marginBottom: 8 },
+  sheet: { width: '88%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#e3ebfb' },
+  sheetTitle: { fontSize: 16, fontWeight: '700', color: theme.colors.textDark, marginBottom: 8 },
   sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 },
-  sheetText: { fontSize: 14, color: theme.colors.brandBlack },
+  sheetText: { fontSize: 14, color: theme.colors.textDark },
   sheetCancel: { marginTop: 6, alignItems: 'center', paddingVertical: 10 },
-  sheetCancelText: { fontSize: 14, color: theme.colors.headerGray },
+  sheetCancelText: { fontSize: 14, color: theme.colors.subtleText },
 
   // Inline alert styles
   alertCard: {
     width: '62%',
     maxWidth: 260,
-    backgroundColor: '#0B0F13',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: theme.colors.brandYellow,
+    borderColor: '#6286cb',
     shadowColor: theme.colors.shadow,
     shadowOpacity: 0.18,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
-  alertText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
+  alertText: { color: '#3f60a0', fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
 });

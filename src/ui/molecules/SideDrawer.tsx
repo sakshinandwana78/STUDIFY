@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Text from '../atoms/Text';
-import { theme } from '../tokens/theme';
+// Static styling: no theme import to avoid dynamic recoloring
+// Removed theme hook to restore static styling unaffected by toggle
 
 type Props = {
   open: boolean;
@@ -35,6 +36,7 @@ const menuItems = [
 const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout, onEditProfile }) => {
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+  // No theme context; keep visuals static
 
   useEffect(() => {
     if (open) {
@@ -80,7 +82,9 @@ const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout, onEditProfile })
 
       <Animated.View style={[styles.drawer, { transform: [{ translateX }] }]}>
         <View style={styles.drawerHeader}>
-          <Text variant="subtitle" weight="bold" style={styles.drawerTitle}>Menu</Text>
+          <Text variant="subtitle" weight="bold" style={styles.drawerTitle}>
+            Menu
+          </Text>
         </View>
         <View style={styles.menuList}>
           {menuItems.map((item) => (
@@ -101,8 +105,10 @@ const SideDrawer: React.FC<Props> = ({ open, onClose, onLogout, onEditProfile })
                 }
               }}
             >
-              <Ionicons name={item.icon} size={26} color={'#0F172A'} style={styles.menuIcon} />
-              <Text variant="body" style={styles.menuLabel}>{item.label}</Text>
+              <Ionicons name={item.icon} size={26} color="#0F172A" style={styles.menuIcon} />
+              <Text variant="body" style={styles.menuLabel}>
+                {item.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -122,7 +128,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,23,42,0.32)', // dimmed backdrop (subtle)
+    backgroundColor: 'rgba(0,0,0,0.18)',
   },
   touchOutside: {
     position: 'absolute',
@@ -137,10 +143,10 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: DRAWER_WIDTH,
-    backgroundColor: theme.colors.card,
+    backgroundColor: '#FFFFFF',
     borderTopRightRadius: 16,
     borderBottomRightRadius: 16,
-    shadowColor: theme.colors.shadow,
+    shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 10,
     shadowOffset: { width: 6, height: 0 },

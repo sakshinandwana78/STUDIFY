@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground, ScrollView, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../../ui/tokens/theme';
 import AuthInput from './AuthInput';
 // NEW: Modular auth service (Firebase). Does not touch AR features.
 import { signUp } from '../../auth/AuthService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export type AuthStackParamList = {
   AuthWelcome: undefined;
@@ -15,11 +16,17 @@ export type AuthStackParamList = {
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
+// Full-screen background (second Email/Username illustration)
+const bgSignup = require('../../../assets/Copy of STUDIFY.png');
+// Illustration shown above the sign up form
+const illSignup = require('../../../assets/Sign up-amico (1).png');
+
 export default function SignupScreen({ navigation }: Props) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const insets = useSafeAreaInsets();
 
   const handleCreate = async () => {
     if (!email || !password) {
@@ -43,14 +50,15 @@ export default function SignupScreen({ navigation }: Props) {
     navigation.replace('Login');
   };
 
-  const illo = require('../../../assets/Sign up-amico.png');
-
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.tint} />
-      <View style={styles.card}>
-        <Image source={illo} style={styles.illustration} resizeMode="contain" />
-        <Text style={styles.heading}>Sign Up</Text>
+      <ImageBackground source={bgSignup} style={styles.bg} resizeMode="cover">
+        <ScrollView contentContainerStyle={[styles.overlay, { paddingBottom: insets.bottom + 56, paddingTop: insets.top + 8 }]} keyboardShouldPersistTaps="handled">
+          {/* Form stacked directly on background, consistent with Sign In */}
+          {/* Illustration only at the top (title/subtitle removed) */}
+          <Image source={illSignup} style={styles.illustration} resizeMode="contain" />
+
+          <View style={styles.form}>
 
         <AuthInput label="Full Name" placeholder="Jane Doe" value={fullName} onChangeText={setFullName} icon={'person-outline'} variant="light" />
         <AuthInput label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" icon={'mail-outline'} variant="light" />
@@ -67,44 +75,35 @@ export default function SignupScreen({ navigation }: Props) {
             <Text style={styles.bottomLink}>Sign In</Text>
           </TouchableOpacity>
         </View>
-      </View>
+          </View>
+        </ScrollView>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0B0F13', padding: 24, justifyContent: 'center', alignItems: 'center' },
-  tint: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(255, 204, 0, 0.06)' },
-  card: {
-    width: '92%',
-    maxWidth: 420,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    paddingHorizontal: 22,
-    paddingVertical: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 8,
-  },
-  illustration: { width: '100%', height: 140, marginBottom: 8 },
-  heading: { color: theme.colors.brandBlack, fontSize: 24, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
+  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  bg: { flex: 1, width: '100%', height: '100%' },
+  overlay: { flexGrow: 1, alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 24 },
+  illustration: { width: '75%', height: 180, alignSelf: 'center', marginBottom: 12 },
+  form: { width: '92%', maxWidth: 420 },
   primary: {
-    marginTop: 6,
-    backgroundColor: theme.colors.brandYellow,
-    borderRadius: 18,
+    marginTop: 12,
+    backgroundColor: '#3f60a0',
+    borderRadius: 16,
     height: 52,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: theme.colors.shadow,
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
-  primaryLabel: { color: theme.colors.brandBlack, fontSize: 16, fontWeight: '700' },
+  primaryLabel: { color: theme.colors.secondaryBg, fontSize: 16, fontWeight: '700' },
   bottomRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 10 },
-  bottomText: { color: '#6E6E6E', fontSize: 13, marginRight: 6 },
-  bottomLink: { color: theme.colors.brandYellow, fontSize: 13, fontWeight: '600' },
+  bottomText: { color: theme.colors.subtleText, fontSize: 13, marginRight: 6 },
+  bottomLink: { color: theme.colors.accentBlue, fontSize: 13, fontWeight: '600' },
 });

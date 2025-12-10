@@ -34,7 +34,7 @@ const AuthInput: React.FC<Props> = ({
       <Text style={[styles.label, isLight && styles.labelLight]}>{label}</Text>
       <View style={[styles.field, isLight && styles.fieldLight, focused && styles.fieldFocused]}>
         {icon && (
-          <Ionicons name={icon} size={18} color={isLight ? '#0F172A' : '#FFFFFF'} style={{ marginRight: 8 }} />
+          <Ionicons name={icon} size={18} color={isLight ? theme.colors.textDark : theme.colors.secondaryBg} style={{ marginRight: 8 }} />
         )}
         <TextInput
           value={value}
@@ -42,7 +42,7 @@ const AuthInput: React.FC<Props> = ({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
-          placeholderTextColor={isLight ? '#9CA3AF' : '#B5BCD1'}
+          placeholderTextColor={isLight ? theme.colors.subtleText : theme.colors.lightText}
           secureTextEntry={isPassword ? !showPassword : false}
           autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
           keyboardType={keyboardType}
@@ -70,25 +70,25 @@ const AuthInput: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 14 },
-  label: { color: '#FFFFFF', fontSize: 13, fontWeight: '600', marginBottom: 8 },
-  labelLight: { color: '#0F172A' },
+  label: { color: theme.colors.secondaryBg, fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  labelLight: { color: theme.colors.textDark },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1F2A44',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#0E1630',
+    borderColor: theme.colors.cardBorder,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: theme.colors.primaryBg,
   },
   fieldLight: {
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderColor: theme.colors.cardBorder,
+    backgroundColor: '#FAFCFF',
   },
-  fieldFocused: { borderColor: theme.colors.brandYellow, shadowColor: theme.colors.shadow, shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
-  input: { flex: 1, color: '#FFFFFF', fontSize: 14 },
-  inputLight: { color: '#0F172A' },
+  fieldFocused: { borderColor: theme.colors.accentBlue, shadowColor: theme.colors.shadow, shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  input: { flex: 1, color: theme.colors.secondaryBg, fontSize: 14 },
+  inputLight: { color: theme.colors.textDark },
   toggle: { marginLeft: 8, padding: 4 },
 });
 

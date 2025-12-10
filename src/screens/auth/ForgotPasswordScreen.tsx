@@ -32,7 +32,8 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     navigation.replace('Login');
   };
 
-  const illo = require('../../../assets/Reset password-rafiki.png');
+  // Use an existing illustration to avoid bundling errors
+  const illo = require('../../../assets/reading.png');
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -64,8 +65,8 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0B0F13', padding: 24, justifyContent: 'center', alignItems: 'center' },
-  tint: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(255, 204, 0, 0.06)' },
+  screen: { flex: 1, backgroundColor: theme.colors.primaryBg, padding: 24, justifyContent: 'center', alignItems: 'center' },
+  tint: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(10, 107, 142, 0.08)' },
   card: {
     width: '92%',
     maxWidth: 420,
@@ -79,10 +80,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   illustration: { width: '100%', height: 140, marginBottom: 12 },
-  heading: { color: theme.colors.brandBlack, fontSize: 24, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
+  heading: { color: theme.colors.textDark, fontSize: 24, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
   primary: {
     marginTop: 6,
-    backgroundColor: theme.colors.brandYellow,
+    backgroundColor: theme.colors.accentBlue,
     borderRadius: 18,
     height: 52,
     alignItems: 'center',
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
-  primaryLabel: { color: theme.colors.brandBlack, fontSize: 16, fontWeight: '700' },
+  primaryLabel: { color: theme.colors.secondaryBg, fontSize: 16, fontWeight: '700' },
   linkWrap: { alignItems: 'center', marginTop: 12 },
-  link: { color: theme.colors.brandYellow, fontSize: 13, fontWeight: '600' },
+  link: { color: theme.colors.accentBlue, fontSize: 13, fontWeight: '600' },
 });

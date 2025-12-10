@@ -64,12 +64,12 @@ const ModelPickerModal = ({ isVisible, models, onSelectModel, onClose }: ModelPi
         searchFocused ? styles.searchFocused : null,
       ]}
     >
-      <Ionicons name="search-outline" size={18} color="#FFFFFF" style={styles.searchIcon} />
+      <Ionicons name="search-outline" size={18} color={theme.colors.textDark} style={styles.searchIcon} />
       <TextInput
         value={query}
         onChangeText={setQuery}
         placeholder="Search models..."
-        placeholderTextColor="rgba(255,255,255,0.6)"
+        placeholderTextColor={theme.colors.subtleText}
         style={styles.searchInput}
         autoCapitalize="none"
         autoCorrect={false}
@@ -112,7 +112,7 @@ const ModelPickerModal = ({ isVisible, models, onSelectModel, onClose }: ModelPi
             <View style={styles.header}>
               <Text style={styles.title}>Select a 3D Model</Text>
               <Pressable onPress={animateOutAndClose} style={({ pressed }) => [styles.headerClose, pressed && styles.headerClosePressed]}>
-                <Ionicons name="close" size={18} color={theme.colors.brandBlack} />
+                <Ionicons name="close" size={18} color={theme.colors.secondaryBg} />
               </Pressable>
             </View>
             <View style={styles.container}>
@@ -147,19 +147,20 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     // Frosted, semi-transparent dark overlay
-    backgroundColor: 'rgba(10, 12, 16, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
-    backgroundColor: '#181D23', // dark card background
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    backgroundColor: '#F4F7FB', // light card-like surface
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
     overflow: 'hidden',
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    // Gentle glow/shadow for premium separation
-    shadowOffset: { width: 0, height: -2 },
+    borderWidth: 1,
+    borderColor: theme.colors.cardBorder,
+    elevation: 2,
+    shadowColor: theme.colors.shadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   sheetContent: {
     flex: 1,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#2A2F38',
+    backgroundColor: theme.colors.accentBlue,
     marginTop: 8,
     marginBottom: 6,
   },
@@ -182,15 +183,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2A2F38',
+    borderColor: theme.colors.cardBorder,
     borderRadius: 22,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#23272F',
+    backgroundColor: theme.colors.card,
     marginBottom: 14,
   },
   searchFocused: {
-    borderColor: theme.colors.brandYellow,
+    borderColor: theme.colors.accentBlue,
   },
   searchIcon: {
     marginRight: 8,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.colors.textDark,
     paddingVertical: 4,
   },
   header: {
@@ -209,13 +210,13 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2A2F38',
+    borderBottomColor: theme.colors.cardBorder,
   },
   headerClose: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.colors.brandYellow,
+    backgroundColor: theme.colors.accentBlue,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     textAlign: 'left',
-    color: '#FFFFFF',
+    color: theme.colors.primary,
     letterSpacing: 0.2,
   },
   listContent: {
@@ -243,18 +244,18 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     alignItems: 'center',
     minHeight: 56,
-    backgroundColor: '#22242B',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#2A2F38',
+    borderColor: theme.colors.cardBorder,
     paddingHorizontal: 16,
     paddingVertical: 16,
     flexDirection: 'row',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    shadowColor: theme.colors.shadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   modelItemHovered: {
     elevation: 6,
@@ -262,15 +263,15 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   modelItemPressed: {
-    backgroundColor: 'rgba(255, 204, 0, 0.08)', // soft yellow fill
-    borderColor: theme.colors.brandYellow,
+    backgroundColor: 'rgba(10, 107, 142, 0.12)', // soft blue fill
+    borderColor: theme.colors.accentBlue,
   },
   leftAccent: {
     width: 3,
     alignSelf: 'stretch',
-    backgroundColor: theme.colors.brandYellow,
-    borderTopLeftRadius: 18,
-    borderBottomLeftRadius: 18,
+    backgroundColor: theme.colors.accentBlue,
+    borderTopLeftRadius: 22,
+    borderBottomLeftRadius: 22,
     marginRight: 12,
   },
   modelThumbnail: {
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
   },
   modelName: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.colors.primary,
     fontWeight: '700',
     letterSpacing: 0.2,
   },
@@ -298,11 +299,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#A3A3A3',
+    color: theme.colors.subtleText,
   },
   itemIcon: {
     marginRight: 10,
-    color: theme.colors.brandYellow,
+    color: theme.colors.accentBlue,
   },
 });
 

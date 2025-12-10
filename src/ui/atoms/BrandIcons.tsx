@@ -12,9 +12,12 @@ type IconProps = {
 
 const defaults = {
   size: 24,
-  strokeColor: theme.colors.brandBlack, // crisper strokes to match banner/text
-  fillColor: theme.colors.softSurface,  // light neutral fill
-  accentColor: theme.colors.brandYellow, // brand accent
+  // Dark blue for clear, high-contrast line icons
+  strokeColor: '#033545',
+  // Use no fill to achieve simple line icon style
+  fillColor: 'none',
+  // Keep accents consistent with the main stroke color
+  accentColor: '#033545',
   strokeWidth: 2,
 };
 

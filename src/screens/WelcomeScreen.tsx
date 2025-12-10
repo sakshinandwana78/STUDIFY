@@ -1,9 +1,9 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../ui/tokens/theme';
-import GradientBackground from '../ui/molecules/GradientBackground';
 import { auth } from '../auth/firebaseClient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
   Splash: undefined;
@@ -14,92 +14,63 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
-// Use the illustration from assets (case-sensitive path)
-const illo = require('../../assets/Audiobook-bro.png');
+// Full-screen background image (case-sensitive path)
+const bgImg = require('../../assets/STUDIFY (20).png');
 
 export default function WelcomeScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   return (
-    <GradientBackground>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <Image source={illo} style={styles.image} resizeMode="contain" />
-          <Text style={styles.chewyHeadline}>Transforming Learning Through AR Innovation</Text>
-          <Text style={styles.subText}>
-            Immerse in interactive 3D lessons, practice with smart quizzes,
-            and explore models that bring complex concepts to life.
-          </Text>
-        </View>
-
-        <View style={styles.footer}>
+    <SafeAreaView style={styles.container}>
+      <ImageBackground source={bgImg} style={styles.bg} resizeMode="cover">
+        <View style={[styles.overlay, { paddingBottom: insets.bottom + 24 }]}>
           <TouchableOpacity
             activeOpacity={0.9}
             style={styles.cta}
             onPress={() => {
               const isLoggedIn = !!auth && !!auth.currentUser;
-              // Reset to target route to avoid any intermediate transitions or flashes
-              navigation.reset({ index: 0, routes: [{ name: isLoggedIn ? 'Home' : 'Auth' }] });
+              navigation.reset({ index: 0, routes: [{ name: isLoggedIn ? 'MainTabs' : 'Auth' }] });
             }}
           >
             <Text style={styles.ctaLabel}>Get Started</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </GradientBackground>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#FFFFFF',
   },
-  content: {
+  bg: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  image: {
-    width: '90%',
-    height: 320,
-    marginBottom: 28,
-  },
-  chewyHeadline: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    letterSpacing: 0.2,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  subText: {
-    marginTop: 10,
-    color: theme.colors.headerGray,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-    paddingHorizontal: 10,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
+    justifyContent: 'flex-end',
   },
   cta: {
-    backgroundColor: theme.colors.brandYellow,
-    borderRadius: 18,
-    height: 56,
+    width: '65%',
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#3f60a0',
     alignItems: 'center',
     justifyContent: 'center',
-    // Premium, smooth elevation
     shadowColor: theme.colors.shadow,
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.14,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
   ctaLabel: {
-    color: theme.colors.brandBlack,
+    color: theme.colors.secondaryBg,
     fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontWeight: '600',
+    letterSpacing: 0.25,
   },
 });

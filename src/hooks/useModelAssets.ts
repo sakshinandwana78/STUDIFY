@@ -103,8 +103,11 @@ const useModelAssets = () => {
           },
         ];
 
-        // Load the app icon for thumbnails
-        const iconAsset = Asset.fromModule(require('../../assets/icon.png'));
+        // Load a valid local image for thumbnails. The previous path
+        // '../../assets/splash-icon.png' did not exist and caused
+        // a runtime error: "Requiring unknown module 'undefined'".
+        // Use the present '../../assets/favicon.png' instead.
+        const iconAsset = Asset.fromModule(require('../../assets/favicon.png'));
         
         // Generate thumbnails using the loaded icon asset
         const modelsWithThumbnails = modelsList.map(model => ({

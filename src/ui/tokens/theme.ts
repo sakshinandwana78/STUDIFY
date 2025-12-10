@@ -1,30 +1,33 @@
 export const theme = {
   colors: {
     // Structure
-    background: '#F2F2F2',
-    card: '#FFFFFF',
+    background: '#E6F3F8', // very light blue (optional UI background)
+    card: '#FFFFFF', // secondary background for content areas
     // Brand / text
-    primary: '#000000',
-    subtleText: '#6E6E6E',
-    softSurface: '#FAFAFA',
-    shadow: '#000000',
-    cardBorder: '#E0E0E0',
-    brandYellow: '#FFCC00',
-    brandBlack: '#000000',
-    headerGray: '#6E6E6E',
-    // Muted premium accents (exact tones)
-    accentBlue: '#4A6FA5',
-    accentGreen: '#5C9370',
-    accentPurple: '#7A6FAF',
-    accentCoral: '#D28F7E',
-    accentTeal: '#5AA6A6',
+    primary: '#102A43', // dark text on light backgrounds
+    subtleText: '#627D98', // muted/secondary text
+    softSurface: '#E6F3F8', // soft panels/backgrounds
+    shadow: '#000000', // keep neutral shadow color
+    cardBorder: '#E5E9F2', // subtle cool border
+    brandYellow: '#0A6B8E', // repurposed as accent/primary buttons
+    brandBlack: '#102A43', // repurposed as dark text token
+    headerGray: '#627D98', // subtitles/descriptions
+    // Primary backgrounds
+    primaryBg: '#033545', // headers, main sections
+    secondaryBg: '#FFFFFF',
+    // Accents
+    accentBlue: '#0A6B8E',
+    accentGreen: '#0A6B8E', // unify to blue family per education style
+    accentPurple: '#0A6B8E',
+    accentCoral: '#0A6B8E',
+    accentTeal: '#0A6B8E',
     // Legacy aliases used by screens/components
-    accentGray: '#7A7A7A',
-    accentOrange: '#D28F7E',
-    accentPink: '#D28F7E',
+    accentGray: '#627D98',
+    accentOrange: '#0A6B8E',
+    accentPink: '#0A6B8E',
     // Bottom nav tones
-    navActiveGray: '#4A4A4A',
-    navInactiveGray: '#8A8A8A',
+    navActiveGray: '#0A6B8E',
+    navInactiveGray: '#8A9CAF',
   },
   spacing: {
     xs: 6,
