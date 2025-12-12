@@ -20,15 +20,25 @@ const useModelAssets = () => {
         // Resolve local GLB assets via require + Asset.fromModule
         const volcanoRequire = require('../../assets/models/free__volcano_low_poly.glb');
         const heartRequire = require('../../assets/models/human_heart_3d_model.glb');
-        const orreryRequire = require('../../assets/models/solar_system_model_orrery.glb');
-        const sunRequire = require('../../assets/models/sun.glb');
-        const moonRequire = require('../../assets/models/the_moon (1).glb');
+        const boatRequire = require('../../assets/models/boat_josefa.glb');
+        const dogRequire = require('../../assets/models/dog_puppy.glb');
+        const monkeyRequire = require('../../assets/models/monkey.glb');
+        const muscleCarRequire = require('../../assets/models/dodge_challenger_-_muscle_car_-_low-poly.glb');
+        const solarSystemRequire = require('../../assets/models/solar_system (1).glb');
+        const moonRequire = require('../../assets/models/the_moon.glb');
+        const skeletonRequire = require('../../assets/models/female_skeleton (1).glb');
+        
 
         const volcanoAsset = Asset.fromModule(volcanoRequire);
         const heartAsset = Asset.fromModule(heartRequire);
-        const orreryAsset = Asset.fromModule(orreryRequire);
-        const sunAsset = Asset.fromModule(sunRequire);
+        const boatAsset = Asset.fromModule(boatRequire);
+        const dogAsset = Asset.fromModule(dogRequire);
+        const monkeyAsset = Asset.fromModule(monkeyRequire);
+        const muscleCarAsset = Asset.fromModule(muscleCarRequire);
+        const solarSystemAsset = Asset.fromModule(solarSystemRequire);
         const moonAsset = Asset.fromModule(moonRequire);
+        const skeletonAsset = Asset.fromModule(skeletonRequire);
+        
 
         // Ensure local assets have a stable localUri by preloading them.
         // This avoids cases where Viro cannot load HTTP asset URLs during dev.
@@ -36,9 +46,13 @@ const useModelAssets = () => {
         await Asset.loadAsync([
           volcanoRequire,
           heartRequire,
-          orreryRequire,
-          sunRequire,
+          boatRequire,
+          dogRequire,
+          monkeyRequire,
+          muscleCarRequire,
+          solarSystemRequire,
           moonRequire,
+          skeletonRequire,
         ]);
         console.log('[Assets] Preload complete');
 
@@ -61,7 +75,7 @@ const useModelAssets = () => {
             name: 'Human Heart',
             modelPath: heartAsset,
             sourceModule: heartRequire,
-            defaultScale: [0.12, 0.12, 0.12],
+            defaultScale: [0.18, 0.18, 0.18],
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 0.8,
@@ -69,26 +83,52 @@ const useModelAssets = () => {
             baseYOffsetMeters: -0.02,
           },
           {
-            id: 'orrery',
-            name: 'Solar System Orrery',
-            modelPath: orreryAsset,
-            sourceModule: orreryRequire,
-            defaultScale: [0.05, 0.05, 0.05],
+            id: 'boat',
+            name: 'Boat (Josefa)',
+            modelPath: boatAsset,
+            sourceModule: boatRequire,
+            defaultScale: [0.22, 0.22, 0.22],
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
-            defaultPlacementMeters: 1.9,
-            footprintMeters: 1.0,
+            defaultPlacementMeters: 1.2,
+            footprintMeters: 0.6,
+            baseYOffsetMeters: -0.03,
           },
           {
-            id: 'sun',
-            name: 'Sun',
-            modelPath: sunAsset,
-            sourceModule: sunRequire,
-            defaultScale: [0.1, 0.1, 0.1],
+            id: 'dog_puppy',
+            name: 'Dog Puppy',
+            modelPath: dogAsset,
+            sourceModule: dogRequire,
+            defaultScale: [0.20, 0.20, 0.20],
             defaultPosition: [0, 0, -1],
             defaultRotation: [0, 0, 0],
-            defaultPlacementMeters: 1.8,
+            defaultPlacementMeters: 1.0,
             footprintMeters: 0.5,
+            baseYOffsetMeters: -0.02,
+          },
+          {
+            id: 'muscle_car',
+            name: 'Dodge Challenger (Low Poly)',
+            modelPath: muscleCarAsset,
+            sourceModule: muscleCarRequire,
+            defaultScale: [0.20, 0.20, 0.20],
+            defaultPosition: [0, 0, -1],
+            defaultRotation: [0, 0, 0],
+            defaultPlacementMeters: 1.0,
+            footprintMeters: 0.5,
+            baseYOffsetMeters: -0.03,
+          },
+          {
+            id: 'solar_system',
+            name: 'Solar System',
+            modelPath: solarSystemAsset,
+            sourceModule: solarSystemRequire,
+            defaultScale: [0.08, 0.08, 0.08],
+            defaultPosition: [0, 0, -1],
+            defaultRotation: [0, 0, 0],
+            defaultPlacementMeters: 1.0,
+            footprintMeters: 0.5,
+            baseYOffsetMeters: -0.03,
           },
           {
             id: 'moon',
@@ -100,7 +140,33 @@ const useModelAssets = () => {
             defaultRotation: [0, 0, 0],
             defaultPlacementMeters: 1.0,
             footprintMeters: 0.5,
+            baseYOffsetMeters: -0.03,
           },
+          {
+            id: 'monkey',
+            name: 'Monkey',
+            modelPath: monkeyAsset,
+            sourceModule: monkeyRequire,
+            defaultScale: [0.22, 0.22, 0.22],
+            defaultPosition: [0, 0, -1],
+            defaultRotation: [0, 180, 0],
+            defaultPlacementMeters: 1.0,
+            footprintMeters: 0.45,
+            baseYOffsetMeters: -0.02,
+          },
+          {
+            id: 'skeleton',
+            name: 'Female Skeleton',
+            modelPath: skeletonAsset,
+            sourceModule: skeletonRequire,
+            defaultScale: [0.12, 0.12, 0.12],
+            defaultPosition: [0, 0, -1],
+            defaultRotation: [0, 0, 0],
+            defaultPlacementMeters: 1.4,
+            footprintMeters: 0.6,
+            baseYOffsetMeters: -0.02,
+          },
+          
         ];
 
         // Load a valid local image for thumbnails. The previous path

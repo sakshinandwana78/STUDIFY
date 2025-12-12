@@ -34,9 +34,9 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
             onPress={() => {
               const isLoggedIn = !!auth && !!auth.currentUser;
               if (isLoggedIn) {
-                // Reset parent (root) navigator directly to Home for instant transition
+                // Reset parent (root) navigator to MainTabs (Home is initial tab)
                 navigation.getParent()?.dispatch(
-                  CommonActions.reset({ index: 0, routes: [{ name: 'Home' as never }] })
+                  CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' as never }] })
                 );
               } else {
                 navigation.replace('Login');
@@ -52,7 +52,7 @@ export default function AuthWelcomeScreen({ navigation }: Props) {
             style={styles.skip}
             onPress={() =>
               navigation.getParent()?.dispatch(
-                CommonActions.reset({ index: 0, routes: [{ name: 'Home' as never }] })
+                CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' as never }] })
               )
             }
           >

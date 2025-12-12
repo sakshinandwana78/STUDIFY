@@ -7,13 +7,14 @@ import { ModelPickerModalProps } from '../types/models';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../ui/tokens/theme';
 
-const ModelPickerModal = ({ isVisible, models, onSelectModel, onClose }: ModelPickerModalProps) => {
+const ModelPickerModal = ({ isVisible, models, onSelectModel, onClose, disabled = false }: ModelPickerModalProps) => {
   const SHEET_HEIGHT = Math.round(Dimensions.get('window').height * 0.5);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT + 24)).current;
 
   const [query, setQuery] = useState('');
 
   const handleModelSelect = (model: any) => {
+    if (disabled) return;
     onSelectModel(model);
     onClose();
   };
@@ -82,10 +83,12 @@ const ModelPickerModal = ({ isVisible, models, onSelectModel, onClose }: ModelPi
 
   const renderModelItem = ({ item }: { item: any }) => (
     <Pressable
+      disabled={disabled}
       style={({ pressed, hovered }) => [
         styles.modelItem,
-        pressed && styles.modelItemPressed,
-        hovered && styles.modelItemHovered,
+        disabled && styles.modelItemDisabled,
+        pressed && !disabled && styles.modelItemPressed,
+        hovered && !disabled && styles.modelItemHovered,
       ]}
       onPress={() => handleModelSelect(item)}
     >
@@ -106,7 +109,7 @@ const ModelPickerModal = ({ isVisible, models, onSelectModel, onClose }: ModelPi
         <TouchableWithoutFeedback onPress={animateOutAndClose}>
           <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }], height: SHEET_HEIGHT }] }>
+        <Animated.View style={[styles.sheet, disabled && styles.sheetDisabled, { transform: [{ translateY }], height: SHEET_HEIGHT }] }>
           <SafeAreaView style={styles.sheetContent}>
             <View style={styles.handle} />
             <View style={styles.header}>
@@ -164,6 +167,9 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     flex: 1,
+  },
+  sheetDisabled: {
+    opacity: 0.5,
   },
   container: {
     flex: 1,
@@ -256,6 +262,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
+  },
+  modelItemDisabled: {
+    opacity: 0.45,
   },
   modelItemHovered: {
     elevation: 6,

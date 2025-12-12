@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ViroARSceneNavigator } from '@viro-community/react-viro';
@@ -14,25 +14,44 @@ export default function App() {
   const [isModelPickerVisible, setIsModelPickerVisible] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<Model3D | undefined>(undefined);
   const [arInitialized, setArInitialized] = useState<boolean>(false);
+  const [hasActiveModel, setHasActiveModel] = useState<boolean>(false);
   const [arState, setArState] = useState<ARSceneState>({
     isTracking: false,
     planeDetected: false,
     anchorFound: false,
   });
+  const [showTip, setShowTip] = useState<boolean>(true);
+
+  // Show a non-blocking tip banner on mount for ~2 seconds
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (showTip) {
+      timer = setTimeout(() => setShowTip(false), 2000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   const handleAnchorFound = () => {
     setArState((prev) => ({ ...prev, anchorFound: true }));
+    setHasActiveModel(true);
   };
 
   // Handle model selection
   const handleSelectModel = (model: Model3D) => {
+    if (hasActiveModel) {
+      // Ignore selection while a model is active (locked)
+      return;
+    }
     console.log('[App] Selected model:', model.id, model.name);
     setSelectedModel(model);
     setIsModelPickerVisible(false);
   };
 
-  // Show model picker
+  // Show model picker (guarded by hasActiveModel lock)
   const handleShowModelPicker = () => {
+    if (hasActiveModel) return;
     setIsModelPickerVisible(true);
   };
 
@@ -45,6 +64,7 @@ export default function App() {
   const handleRemoveModel = () => {
     setSelectedModel(undefined);
     setArState((prev) => ({ ...prev, anchorFound: false }));
+    setHasActiveModel(false);
   };
 
   // Handle AR tracking updates
@@ -104,12 +124,21 @@ export default function App() {
           />
 
           <View style={styles.overlay} pointerEvents="auto">
+            {showTip && (
+              <View style={styles.tipBanner} pointerEvents="none">
+                <Text style={styles.tipBannerText}>
+                  Point your camera to a flat surface to detect a plane, then choose a model to place on it.
+                </Text>
+              </View>
+            )}
             {!isModelPickerVisible && (
               <TouchableOpacity
-                style={styles.addButton}
+                style={[styles.addButton, hasActiveModel && styles.addButtonDisabled]}
                 onPress={handleShowModelPicker}
+                disabled={hasActiveModel}
+                pointerEvents={hasActiveModel ? 'none' : 'auto'}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                activeOpacity={0.8}
+                activeOpacity={hasActiveModel ? 1 : 0.8}
               >
                 <Ionicons name="add-circle" size={50} color="#ffffff" />
               </TouchableOpacity>
@@ -131,6 +160,7 @@ export default function App() {
               models={models}
               onSelectModel={handleSelectModel}
               onClose={handleCloseModelPicker}
+              disabled={hasActiveModel}
             />
 
             {/* Small, subtle tracking indicator */}
@@ -191,6 +221,9 @@ const styles = StyleSheet.create({
     padding: 5,
     zIndex: 3,
   },
+  addButtonDisabled: {
+    opacity: 0.55,
+  },
   closeButton: {
     position: 'absolute',
     top: 40,
@@ -213,5 +246,29 @@ const styles = StyleSheet.create({
   trackingText: {
     color: '#ffffff',
     fontSize: 12,
+  },
+  tipBanner: {
+    position: 'absolute',
+    top: 16,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 4,
+  },
+  tipBannerText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    maxWidth: '92%',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 3,
+    elevation: 4,
+    overflow: 'hidden',
   },
 });

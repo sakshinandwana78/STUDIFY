@@ -54,6 +54,8 @@ export interface ModelPickerModalProps {
   models: Model3D[];
   onSelectModel: (model: Model3D) => void;
   onClose: () => void;
+  /** When true, disables selection and indicates locked state */
+  disabled?: boolean;
 }
 
 // import { Asset } from 'expo-asset';

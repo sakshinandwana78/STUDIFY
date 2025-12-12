@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../ui/tokens/colors';
+import { Typography } from '../ui/tokens/typography';
+import { theme } from '../ui/tokens/theme';
 import { ViroARSceneNavigator } from '@viro-community/react-viro';
 import ARScene from '../scenes/ARScene';
 import ModelPickerModal from '../components/ModelPickerModal';
@@ -12,27 +15,49 @@ export default function ARCameraScreen() {
   const [isModelPickerVisible, setIsModelPickerVisible] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<Model3D | undefined>(undefined);
   const [arInitialized, setArInitialized] = useState<boolean>(false);
+  const [hasActiveModel, setHasActiveModel] = useState<boolean>(false);
   const [arState, setArState] = useState<ARSceneState>({
     isTracking: false,
     planeDetected: false,
     anchorFound: false,
   });
   const [overlayOpacity] = useState(new Animated.Value(1));
+  const [showTip, setShowTip] = useState<boolean>(true);
+
+  // Show tip for 2 seconds on mount, then auto-hide
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (showTip) {
+      timer = setTimeout(() => setShowTip(false), 2000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   const handleAnchorFound = () => {
     setArState((prev) => ({ ...prev, anchorFound: true }));
+    setHasActiveModel(true);
   };
 
   const handleSelectModel = (model: Model3D) => {
+    if (hasActiveModel) {
+      // Ignore selection while a model is active
+      return;
+    }
     setSelectedModel(model);
     setIsModelPickerVisible(false);
   };
 
-  const handleShowModelPicker = () => setIsModelPickerVisible(true);
+  const handleShowModelPicker = () => {
+    if (hasActiveModel) return;
+    setIsModelPickerVisible(true);
+  };
   const handleCloseModelPicker = () => setIsModelPickerVisible(false);
   const handleRemoveModel = () => {
     setSelectedModel(undefined);
     setArState((prev) => ({ ...prev, anchorFound: false }));
+    setHasActiveModel(false);
   };
   const handleTrackingUpdated = (state: ARSceneState) => {
     setArState(state);
@@ -58,9 +83,7 @@ export default function ARCameraScreen() {
 
   const statusText = (() => {
     if (!arState.anchorFound) {
-      if (!arState.isTracking) return 'Wait, detecting the surface…';
-      if (arState.isTracking && !arState.planeDetected) return 'AR Ready';
-      if (arState.isTracking && arState.planeDetected) return 'Great! Surface detected, tap to place the model';
+      return 'Point your camera to a flat surface to detect a plane, then choose a model to place on it.';
     }
     return '';
   })();
@@ -101,10 +124,12 @@ export default function ARCameraScreen() {
         <View style={styles.overlay} pointerEvents="box-none">
           {!isModelPickerVisible && (
             <TouchableOpacity
-              style={styles.addButton}
+              style={[styles.addButton, hasActiveModel && styles.addButtonDisabled]}
               onPress={handleShowModelPicker}
+              disabled={hasActiveModel}
+              pointerEvents={hasActiveModel ? 'none' : 'auto'}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              activeOpacity={0.8}
+              activeOpacity={hasActiveModel ? 1 : 0.8}
             >
               <Ionicons name="add-circle" size={50} color="#ffffff" />
             </TouchableOpacity>
@@ -126,7 +151,16 @@ export default function ARCameraScreen() {
             models={models}
             onSelectModel={handleSelectModel}
             onClose={handleCloseModelPicker}
+            disabled={hasActiveModel}
           />
+
+          {showTip && (
+            <View style={styles.tipBanner} pointerEvents="none">
+              <Text style={styles.tipBannerText}>
+                Point your camera to a flat surface to detect a plane, then choose a model to place on it.
+              </Text>
+            </View>
+          )}
 
           {!arState.anchorFound && !!statusText && (
             <Animated.View style={[styles.statusOverlay, { opacity: overlayOpacity }]} pointerEvents="none">
@@ -170,6 +204,9 @@ const styles = StyleSheet.create({
     padding: 5,
     zIndex: 3,
   },
+  addButtonDisabled: {
+    opacity: 0.55,
+  },
   closeButton: {
     position: 'absolute',
     top: 40,
@@ -187,21 +224,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 3,
   },
-  statusOverlayText: {
+  tipBanner: {
+    position: 'absolute',
+    top: 16,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 4,
+  },
+  tipBannerText: {
     color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    lineHeight: 22,
+    fontSize: 16,
+    fontWeight: '600',
     textAlign: 'center',
-    maxWidth: '88%',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingVertical: 10,
+    maxWidth: '92%',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 16,
-    textShadowColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 14,
+    textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textShadowRadius: 3,
+    elevation: 4,
     overflow: 'hidden',
+  },
+  statusOverlayText: {
+    color: theme.colors.primary,
+    fontSize: 11,
+    fontFamily: Typography.fontFamily.medium,
+    lineHeight: Typography.lineHeight.sm,
+    textAlign: 'center',
+    maxWidth: '92%',
+    backgroundColor: theme.colors.background,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.radius.sm,
+    textShadowColor: theme.colors.shadow,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
 });

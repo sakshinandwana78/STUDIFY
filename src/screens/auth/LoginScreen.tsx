@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground, ScrollView, Image, Animated } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground, ScrollView, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import { theme } from '../../ui/tokens/theme';
 import AuthInput from './AuthInput';
 // NEW: Modular auth service (Firebase). Does not touch AR features.
@@ -19,8 +20,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 // Full-screen background (Email/Username illustration)
 const bgLogin = require('../../../assets/Copy of STUDIFY.png');
-// Illustration shown above the form
-const illLogin = require('../../../assets/Login-cuate (1).png');
 
 export default function LoginScreen({ navigation }: Props) {
   const [identifier, setIdentifier] = useState('');
@@ -101,7 +100,10 @@ export default function LoginScreen({ navigation }: Props) {
     // Hide any previous error and proceed as usual
     dismissToast();
     Alert.alert('Welcome', `Signed in as ${user?.email ?? 'user'}`);
-    navigation.getParent()?.navigate('Home' as never);
+    // Reset root to MainTabs so the user lands on the Home tab
+    navigation.getParent()?.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' as never }] })
+    );
   };
 
   return (
@@ -110,10 +112,9 @@ export default function LoginScreen({ navigation }: Props) {
         <ScrollView contentContainerStyle={[styles.overlay, { paddingBottom: insets.bottom + 56, paddingTop: insets.top + 8 }]}
           keyboardShouldPersistTaps="handled">
           {/* Form stacked directly on background, below decorative top area */}
-          {/* Heading, subtitle, and illustration */}
+          {/* Heading and subtitle (illustration removed for cleaner layout) */}
           <Text style={styles.title}>Welcome!</Text>
           <Text style={styles.subtitle}>To continue using this app, please sign in first.</Text>
-          <Image source={illLogin} style={styles.illustration} resizeMode="contain" />
 
           <View style={styles.form}>
 
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   overlay: { flexGrow: 1, alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 24 },
   title: { color: theme.colors.textDark, fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 6 },
   subtitle: { color: theme.colors.subtleText, fontSize: 14, fontWeight: '400', textAlign: 'center', marginBottom: 14 },
-  illustration: { width: '75%', height: 200, alignSelf: 'center', marginBottom: 16 },
+  // Illustration removed; keep spacing tidy via subtitle and form margins
   form: { width: '92%', maxWidth: 420 },
   // Top popup toast styles
   toast: {

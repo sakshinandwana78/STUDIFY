@@ -56,12 +56,12 @@ const ARScene = (props: any) => {
   const screen = Dimensions.get('window');
   const autoAnchorRequestedRef = useRef<boolean>(false);
   const infoTimeoutRef = useRef<any>(null);
-  const STABLE_FRAMES_THRESHOLD = 3; // consecutive updates indicating stability (relaxed)
-  const MIN_EXTENT_METERS = 0.15;    // ignore tiny planes (min width/height in meters, relaxed)
-  const STABILITY_DELTA_M = 0.02;    // max center movement between updates to count as stable
-  const SURFACE_Y_TOLERANCE_M = 0.03; // tolerance to clamp Y to plane center for flush placement
-  const PLANE_UP_NORMAL_MIN = 0.90;   // require strongly upward normal for acceptance (relaxed to 0.90)
-  const CAMERA_Y_BAND_M = 2.0;        // consider only planes whose Y is within ±2m of camera Y
+  const STABLE_FRAMES_THRESHOLD = 5; // require more consecutive stable frames for acceptance
+  const MIN_EXTENT_METERS = 0.15;    // unchanged: min width/height in meters
+  const STABILITY_DELTA_M = 0.02;    // unchanged: center movement tolerance
+  const SURFACE_Y_TOLERANCE_M = 0.03; // unchanged: Y clamp tolerance
+  const PLANE_UP_NORMAL_MIN = 0.97;   // stricter: accept only near-perfect horizontal planes
+  const CAMERA_Y_BAND_M = 1.0;        // stricter: ignore planes far above/below camera
   const stablePlane = stablePlaneFrames >= STABLE_FRAMES_THRESHOLD;
   const extentKnown = lastPlaneExtent[0] > 0 && lastPlaneExtent[1] > 0;
   const extentMeetsThreshold = lastPlaneExtent[0] >= MIN_EXTENT_METERS && lastPlaneExtent[1] >= MIN_EXTENT_METERS;
